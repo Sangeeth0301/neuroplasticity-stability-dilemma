@@ -1,0 +1,85 @@
+{
+  "counts": {
+    "train_turns": 14400,
+    "train_threads": 24,
+    "train_probes": 1440,
+    "test_turns": 3600,
+    "test_threads": 6,
+    "test_probes": 360,
+    "facts": 1920
+  },
+  "validation": {
+    "facts": 1920,
+    "train_threads": 24,
+    "train_turns": 14400,
+    "test_threads": 6,
+    "test_turns": 3600,
+    "probes": 1800,
+    "distinct_probe_distances": 19,
+    "n_probes_evaluated": 288,
+    "oracle_recall": 1.0,
+    "random_recall": 0.04513888888888889
+  },
+  "stats": {
+    "n_facts": 1920,
+    "n_superseded": 120,
+    "attributes": {
+      "status": 276,
+      "owner": 257,
+      "budget": 293,
+      "preference": 279,
+      "deadline": 286,
+      "tool": 271,
+      "location": 258
+    },
+    "regimes": {
+      "single_owner": 600,
+      "multi_owner": 600,
+      "adversarial": 720
+    },
+    "train": {
+      "n_turns": 14400,
+      "n_threads": 24,
+      "kinds": {
+        "distractor": 2852,
+        "filler": 8571,
+        "fact": 1440,
+        "probe": 1440,
+        "update": 97
+      },
+      "words_per_turn_mean": 8.378958333333333,
+      "words_per_turn_p95": 13.0,
+      "probe_distance_mean": 187.4625,
+      "probe_distance_max": 504,
+      "speakers": {
+        "Chen": 2902,
+        "Emil": 2804,
+        "Ada": 2944,
+        "Bo": 2910,
+        "Dara": 2840
+      }
+    },
+    "test": {
+      "n_turns": 3600,
+      "n_threads": 6,
+      "kinds": {
+        "filler": 2147,
+        "distractor": 710,
+        "fact": 360,
+        "probe": 360,
+        "update": 23
+      },
+      "words_per_turn_mean": 8.418888888888889,
+      "words_per_turn_p95": 13.0,
+      "probe_distance_mean": 188.05555555555554,
+      "probe_distance_max": 502,
+      "speakers": {
+        "Dara": 699,
+        "Chen": 688,
+        "Bo": 843,
+        "Ada": 685,
+        "Emil": 685
+      }
+    }
+  }
+}

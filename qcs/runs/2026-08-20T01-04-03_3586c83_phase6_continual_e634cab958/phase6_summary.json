@@ -1,0 +1,98 @@
+{
+  "n_tasks": 8,
+  "probes_per_task": 2,
+  "metrics": {
+    "cosine": {
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 1.0,
+      "auc": 0.8785399297439491,
+      "rank1": 1.0,
+      "stale_above_current": NaN,
+      "n_probes": 16.0,
+      "n_stale_cases": 0.0
+    },
+    "recency": {
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "mrr": 0.04029103614246398,
+      "auc": 0.49769439884027766,
+      "rank1": 0.0,
+      "stale_above_current": NaN,
+      "n_probes": 16.0,
+      "n_stale_cases": 0.0
+    },
+    "random": {
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0,
+      "mrr": 0.026425237120470967,
+      "auc": 0.5186271598233287,
+      "rank1": 0.0,
+      "stale_above_current": NaN,
+      "n_probes": 16.0,
+      "n_stale_cases": 0.0
+    },
+    "oracle": {
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 1.0,
+      "auc": 1.0,
+      "rank1": 1.0,
+      "stale_above_current": NaN,
+      "n_probes": 16.0,
+      "n_stale_cases": 0.0
+    },
+    "quantum_s7": {
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "recall@10": 0.0625,
+      "mrr": 0.046322491376158834,
+      "auc": 0.564692368576045,
+      "rank1": 0.0,
+      "stale_above_current": NaN,
+      "n_probes": 16.0,
+      "n_stale_cases": 0.0
+    },
+    "linear_s7": {
+      "recall@1": 0.4375,
+      "recall@3": 0.625,
+      "recall@5": 0.75,
+      "recall@10": 0.875,
+      "mrr": 0.5583405337941628,
+      "auc": 0.9637133860255651,
+      "rank1": 0.4375,
+      "stale_above_current": NaN,
+      "n_probes": 16.0,
+      "n_stale_cases": 0.0
+    }
+  },
+  "continual": {
+    "quantum_s7": {
+      "A": null,
+      "bwt": 0.004342155996710062,
+      "fwt": 0.0,
+      "plasticity_index": 4.20834493637085,
+      "final_average": 0.04632249474525452,
+      "n_params": 1080.0,
+      "seconds": 170.18657445907593
+    },
+    "linear_s7": {
+      "A": null,
+      "bwt": 0.25877371430397034,
+      "fwt": 0.0,
+      "plasticity_index": 1.7918753623962402,
+      "final_average": 0.5583405494689941,
+      "n_params": 1025.0,
+      "seconds": 0.5092904567718506
+    }
+  }
+}

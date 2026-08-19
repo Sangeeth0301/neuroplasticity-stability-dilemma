@@ -1,0 +1,45 @@
+flowchart TD
+    %% Styling
+    classDef classical fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef quantum fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+    classDef stability fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px,color:#1b5e20;
+    classDef plasticity fill:#fff3e0,stroke:#e65100,stroke-width:3px,color:#d84315;
+
+    subgraph Classical Ingestion & State Prep
+        DB[(SQLite Chat Log)] --> ST[SentenceTransformer]
+        ST --> Vec[512-Dim Vectors]
+        Vec --> L2[L2-Normalization]
+        L2 --> AE[Quantum Amplitude Encoding]
+    end
+
+    AE --> VQC[9-Qubit Parameterized VQC]
+
+    subgraph The QGT Dilemma Resolution Engine
+        VQC --> QGT{Quantum Geometric Tensor}
+        
+        %% STABILITY PATHWAY
+        QGT -->|Imaginary Component| BC((Berry Curvature\nTopological Phase))
+        BC --> AST[Astrocyte Tracker: Calculates S-FIM]
+        AST --> LOCK[THE STABILITY RESOLUTION:\nPermanently anchor core rules\nvia topological invariants]
+        
+        %% PLASTICITY PATHWAY
+        QGT -->|Real Component| QMT((Quantum Metric Tensor\nDistance Metric))
+        QMT --> GRAD[Generate Learning Gradients\nfor new User Data]
+        GRAD --> LEARN[THE PLASTICITY RESOLUTION:\nAbsorb new data continuously\nwithout unbounded weight growth]
+        
+        %% THE INTERSECTION
+        LOCK -.-> PROJ{Orthogonal\nGradient\nProjection}
+        LEARN -.-> PROJ
+        
+        PROJ -->|Update Free Pathways| VQC
+    end
+    
+    subgraph Measurement Output
+        VQC --> MEAS[Measure State]
+        MEAS --> LLM[LLM Context Integration]
+    end
+
+    class DB,ST,Vec,L2 classical;
+    class AE,VQC,MEAS,LLM quantum;
+    class BC,AST,LOCK stability;
+    class QMT,GRAD,LEARN plasticity;

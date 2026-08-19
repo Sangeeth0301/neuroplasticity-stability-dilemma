@@ -1,0 +1,811 @@
+<title>Dual-Manifold ContextSync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#EEF1F3;
+  --surface:#FFFFFF;
+  --surface-2:#E4E9EC;
+  --ink:#12171B;
+  --muted:#576269;
+  --line:#CBD4D9;
+  --line-soft:#DDE4E8;
+  --stab:#0F5F79;        /* classical / memory / stability */
+  --stab-wash:#DDEAEF;
+  --plas:#A6246A;        /* quantum / plasticity */
+  --plas-wash:#F3DEE9;
+  --warn:#8A5A00;
+  --code-bg:#E8ECEF;
+  --shadow:0 1px 2px rgba(18,23,27,.06), 0 8px 24px -16px rgba(18,23,27,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101619;
+    --surface:#161E22;
+    --surface-2:#1D272C;
+    --ink:#E6EDF0;
+    --muted:#9AA8AF;
+    --line:#2C383E;
+    --line-soft:#232E33;
+    --stab:#57B7D4;
+    --stab-wash:#12303B;
+    --plas:#E58ABB;
+    --plas-wash:#3A1730;
+    --warn:#D9A441;
+    --code-bg:#1B2429;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101619;
+  --surface:#161E22;
+  --surface-2:#1D272C;
+  --ink:#E6EDF0;
+  --muted:#9AA8AF;
+  --line:#2C383E;
+  --line-soft:#232E33;
+  --stab:#57B7D4;
+  --stab-wash:#12303B;
+  --plas:#E58ABB;
+  --plas-wash:#3A1730;
+  --warn:#D9A441;
+  --code-bg:#1B2429;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,Segoe UI,sans-serif;
+  font-size:16px;
+  line-height:1.62;
+  margin:0;
+  padding:0 20px 96px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto}
+.col{max-width:72ch}
+
+h1,h2,h3,h4{font-family:Spectral,Georgia,serif;text-wrap:balance;line-height:1.18;margin:0}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:clamp(1.5rem,3vw,2.05rem);font-weight:600}
+h3{font-size:1.22rem;font-weight:600}
+h4{font-size:1.02rem;font-weight:600;font-family:"IBM Plex Sans",sans-serif}
+p{margin:0}
+
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--muted);margin:0;
+}
+
+header.hero{
+  border-bottom:1px solid var(--line);
+  padding:72px 0 40px;
+  margin-bottom:8px;
+}
+.hero .lede{font-family:Spectral,Georgia,serif;font-size:1.24rem;color:var(--muted);margin-top:22px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:28px;font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--muted)}
+
+section{padding:56px 0;border-bottom:1px solid var(--line-soft)}
+section > .stack{display:flex;flex-direction:column;gap:22px}
+.sec-head{display:flex;flex-direction:column;gap:10px;margin-bottom:30px}
+
+a{color:var(--stab)}
+strong{font-weight:600}
+code,kbd{font-family:"IBM Plex Mono",monospace;font-size:.88em;background:var(--code-bg);padding:.1em .34em;border-radius:3px}
+
+ul,ol{margin:0;padding-left:1.25rem;display:flex;flex-direction:column;gap:8px}
+li::marker{color:var(--muted)}
+
+.panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:4px;
+  padding:26px 28px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:14px;
+}
+.panel.tight{padding:18px 20px;gap:10px}
+.panel.stab{border-left:3px solid var(--stab)}
+.panel.plas{border-left:3px solid var(--plas)}
+.panel.warnbox{border-left:3px solid var(--warn);background:var(--surface)}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+
+pre.ascii{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:.775rem;line-height:1.5;
+  background:var(--surface);border:1px solid var(--line);border-radius:4px;
+  padding:20px;overflow-x:auto;margin:0;color:var(--ink);
+}
+pre.code{
+  font-family:"IBM Plex Mono",monospace;font-size:.8rem;line-height:1.55;
+  background:var(--code-bg);border:1px solid var(--line-soft);border-radius:4px;
+  padding:16px 18px;overflow-x:auto;margin:0;
+}
+.math{
+  font-family:"IBM Plex Mono",monospace;font-size:.86rem;
+  background:var(--surface-2);border-radius:4px;padding:12px 16px;overflow-x:auto;
+}
+.caption{font-size:.83rem;color:var(--muted)}
+
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tbody tr:last-child td{border-bottom:none}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap;font-family:"IBM Plex Mono",monospace}
+
+.tag{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.68rem;
+  letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:2px;
+}
+.tag.s{background:var(--stab-wash);color:var(--stab)}
+.tag.p{background:var(--plas-wash);color:var(--plas)}
+
+.phase{display:grid;grid-template-columns:88px 1fr;gap:24px;padding:30px 0;border-top:1px solid var(--line-soft)}
+.phase:first-of-type{border-top:none}
+.phase .idx{
+  font-family:"IBM Plex Mono",monospace;font-size:1.5rem;font-weight:600;
+  color:var(--plas);font-variant-numeric:tabular-nums;line-height:1.1;
+}
+.phase .idx small{display:block;font-size:.65rem;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-top:6px;font-weight:400}
+.phase .body{display:flex;flex-direction:column;gap:14px;min-width:0}
+.exit{font-size:.85rem;background:var(--surface-2);border-radius:4px;padding:10px 14px}
+.exit b{font-family:"IBM Plex Mono",monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:2px}
+
+nav.toc{
+  position:sticky;top:0;z-index:5;background:var(--bg);
+  border-bottom:1px solid var(--line);padding:12px 0;
+  display:flex;gap:20px;overflow-x:auto;
+  font-family:"IBM Plex Mono",monospace;font-size:.74rem;letter-spacing:.06em;
+}
+nav.toc a{color:var(--muted);text-decoration:none;white-space:nowrap}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--plas)}
+:focus-visible{outline:2px solid var(--plas);outline-offset:2px}
+
+@media (max-width:640px){
+  .phase{grid-template-columns:1fr;gap:10px}
+  pre.ascii{font-size:.68rem}
+}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">Architecture blueprint · v2 · supersedes Q-ContextSync v1</p>
+  <h1>Dual-Manifold ContextSync</h1>
+  <p class="lede col">A quantum–classical continual-learning system for long, multi-user shared chat threads. Stability and plasticity are placed on <em>two different mathematical objects</em> — an append-only classical memory manifold that cannot be gradient-erased, and a compact unitary manifold that cannot go rigid — so neither property can consume the other.</p>
+  <div class="meta">
+    <span>Frozen LLM · 10-qubit VQC · 1024-dim amplitude encoding</span>
+    <span>Grounded in Chen &amp; Zhang, PRX Quantum 7, 033003 (2026)</span>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#diagnosis">00 · Diagnosis</a>
+  <a href="#thesis">01 · Thesis</a>
+  <a href="#arch">02 · Architecture</a>
+  <a href="#why">03 · Why superior</a>
+  <a href="#pipeline">04 · Data pipeline</a>
+  <a href="#quantum">05 · Quantum layer math</a>
+  <a href="#plan">06 · Execution phases</a>
+  <a href="#eval">07 · Evaluation</a>
+  <a href="#risk">08 · Risk register</a>
+</nav>
+
+<!-- ============================================================ -->
+<section id="diagnosis">
+  <div class="sec-head col">
+    <p class="eyebrow">00 — Diagnosis</p>
+    <h2>What almost every hybrid design of this kind gets wrong</h2>
+  </div>
+  <div class="stack col">
+    <p>Before proposing anything, name the failure modes. A quantum-continual-learning system for chat memory typically dies in one of five ways. The architecture that follows is constructed specifically so that each one is <em>structurally impossible</em>, not merely tuned against.</p>
+  </div>
+  <div class="grid2" style="margin-top:26px">
+    <div class="panel tight">
+      <h4>F1 · Learning memory into weights</h4>
+      <p class="caption">If a fact from turn 40 lives only in a trained parameter, some later gradient step will overwrite it. Catastrophic forgetting is then a property of the design, and every mitigation is a patch on a leak.</p>
+    </div>
+    <div class="panel tight">
+      <h4>F2 · Confusing “more context” with “better context”</h4>
+      <p class="caption">Naive retrieval maximises recall, fills the window, and the LLM's effective attention per token collapses. Saturation is an <em>allocation</em> problem under a hard budget, not a retrieval problem.</p>
+    </div>
+    <div class="panel tight">
+      <h4>F3 · Putting the quantum circuit on the critical generation path</h4>
+      <p class="caption">A VQC that must emit tokens, or run per-token, is both intractable and unfalsifiable. The quantum component must sit where its output is low-dimensional and its benefit is measurable.</p>
+    </div>
+    <div class="panel tight">
+      <h4>F4 · Assuming quantum solves stability</h4>
+      <p class="caption">It does not. The source paper is explicit: VQCs preserve <em>plasticity</em> intrinsically, and still forget catastrophically without an explicit stability mechanism. Any design that claims quantum-solves-both is unsound.</p>
+    </div>
+    <div class="panel tight">
+      <h4>F5 · No single-user / multi-user distinction</h4>
+      <p class="caption">In a shared thread, salience is per-participant and often contradictory. A single global relevance score silently averages users into an incoherent persona.</p>
+    </div>
+    <div class="panel tight warnbox">
+      <h4>F6 · Unfalsifiable evaluation</h4>
+      <p class="caption">Without ground-truth recall probes injected at generation time, “it remembers better” is unmeasurable. Evaluation must be designed <em>before</em> the dataset, in Phase 1, not bolted on at the end.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="thesis">
+  <div class="sec-head col">
+    <p class="eyebrow">01 — Thesis</p>
+    <h2>Stability and plasticity are different kinds of object, so store them in different spaces</h2>
+  </div>
+  <div class="stack col">
+    <p>The dilemma is usually posed as one dial on one parameter vector: push toward retention and the model stops learning; push toward learning and it forgets. That framing is the bug. Both pressures act on <code>θ ∈ ℝ<sup>n</sup></code>, an unbounded Euclidean space where retention and adaptation are literally the same coordinates.</p>
+    <p>The v2 architecture refuses the shared coordinate system:</p>
+  </div>
+
+  <div class="grid2" style="margin-top:26px">
+    <div class="panel stab">
+      <span class="tag s">Stability manifold</span>
+      <h3>ℳ — classical, non-parametric, append-only</h3>
+      <p class="caption">Every semantic unit ever produced in the thread is stored verbatim plus as a frozen embedding, with provenance. Nothing about it is learned, so nothing about it can be unlearned. Forgetting is reduced from an irreversible gradient phenomenon to a <em>retrieval miss</em> — bounded, measurable, and fixable by improving the scorer rather than by retraining a knowledge store.</p>
+      <div class="math">P(forget fact f) = P(f ∉ selected context) — a ranking error, not a weight update</div>
+    </div>
+    <div class="panel plas">
+      <span class="tag p">Plasticity manifold</span>
+      <h3>𝒰 — quantum, variational, compact</h3>
+      <p class="caption">The only thing that learns online is a variational quantum circuit that scores relevance. Its parameters live on a compact periodic manifold; unitarity bounds gradient and “weight” norms by construction, and <code>Tr(F)</code> is provably bounded away from zero. It can adapt to an evolving conversation for an unbounded number of tasks without going rigid.</p>
+      <div class="math">U(θ) ∈ SU(2<sup>N</sup>),  ‖U‖₂ = 1,  0 &lt; c₁ ≤ 𝔼[Tr F(θ)] ≤ c₂ &lt; ∞</div>
+    </div>
+  </div>
+
+  <div class="col" style="margin-top:26px;display:flex;flex-direction:column;gap:16px">
+    <p><strong>The frozen LLM is the third leg.</strong> No gradient ever reaches the language model. It is a pure conditional generator <code>p(y | C)</code> over an assembled context <code>C</code>. Catastrophic forgetting of the LLM's own capabilities is therefore identically zero — not mitigated, absent.</p>
+    <p><strong>Where the two manifolds meet</strong> is a single, low-dimensional, differentiable interface: the quantum circuit consumes an amplitude-encoded joint state of (query, candidate memory, participant) and emits one scalar relevance in <code>[0,1]</code>. That is the entire coupling. It is small enough to simulate exactly, cheap enough to run per-candidate, and its benefit is directly measurable against a classical scorer with the identical interface.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="arch">
+  <div class="sec-head col">
+    <p class="eyebrow">02 — Architecture</p>
+    <h2>The seven layers, end to end</h2>
+  </div>
+
+  <svg viewBox="0 0 1000 300" role="img" aria-label="Two manifolds joined by a narrow quantum-classical interface" style="width:100%;height:auto;margin-bottom:32px">
+    <defs>
+      <linearGradient id="gs" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="var(--stab)" stop-opacity=".16"/>
+        <stop offset="100%" stop-color="var(--stab)" stop-opacity=".04"/>
+      </linearGradient>
+      <linearGradient id="gp" x1="1" y1="0" x2="0" y2="0">
+        <stop offset="0%" stop-color="var(--plas)" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="var(--plas)" stop-opacity=".04"/>
+      </linearGradient>
+    </defs>
+    <rect x="20" y="40" width="400" height="220" rx="3" fill="url(#gs)" stroke="var(--stab)" stroke-width="1"/>
+    <rect x="580" y="40" width="400" height="220" rx="3" fill="url(#gp)" stroke="var(--plas)" stroke-width="1"/>
+    <text x="40" y="72" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--stab)">ℳ · STABILITY MANIFOLD</text>
+    <text x="40" y="100" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--ink)">Append-only episodic + semantic store</text>
+    <text x="40" y="124" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--muted)">Grows monotonically · never overwritten</text>
+    <text x="40" y="148" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--muted)">Frozen embeddings · full provenance</text>
+    <text x="40" y="196" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--muted)">retention risk = retrieval error</text>
+    <text x="40" y="216" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--muted)">d(fact)/dt ≥ 0</text>
+
+    <text x="960" y="72" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--plas)">𝒰 · PLASTICITY MANIFOLD</text>
+    <text x="960" y="100" text-anchor="end" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--ink)">Variational quantum relevance engine</text>
+    <text x="960" y="124" text-anchor="end" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--muted)">Compact · periodic · unitary</text>
+    <text x="960" y="148" text-anchor="end" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--muted)">Bounded ‖∇‖ · non-collapsing Tr(F)</text>
+    <text x="960" y="196" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--muted)">learnability invariant in t</text>
+    <text x="960" y="216" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--muted)">θ ∈ 𝕋ⁿ, not ℝⁿ</text>
+
+    <line x1="420" y1="150" x2="580" y2="150" stroke="var(--muted)" stroke-width="1"/>
+    <circle cx="500" cy="150" r="34" fill="var(--surface)" stroke="var(--muted)" stroke-width="1"/>
+    <text x="500" y="146" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">1024→</text>
+    <text x="500" y="162" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink)">10 qb</text>
+    <text x="500" y="216" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">amplitude encode ↔ ⟨Z⟩ readout</text>
+    <text x="500" y="96" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">the only coupling</text>
+  </svg>
+
+  <div class="col" style="margin-bottom:26px">
+    <p>Concretely, seven layers. Layers <span class="tag s">L0–L2</span> and <span class="tag s">L5–L6</span> are classical and stateful; <span class="tag p">L3–L4</span> are the learning system.</p>
+  </div>
+
+<pre class="ascii">
+                                 DUAL-MANIFOLD CONTEXTSYNC — CONTROL FLOW
+
+  ┌─ L0 ─────────────┐   ┌─ L1 ──────────────────┐   ┌─ L2 ─────────────────────────────────┐
+  │ INGEST & SEGMENT │   │ CLASSICAL ENCODER     │   │ MEMORY MANIFOLD  ℳ   (append-only)   │
+  │                  │   │  (frozen, never       │   │                                      │
+  │ raw thread event │──▶│   fine-tuned)         │──▶│  ┌────────────┐  ┌─────────────────┐ │
+  │ • speaker id     │   │                       │   │  │ EPISODIC   │  │ SEMANTIC (tier2)│ │
+  │ • timestamp      │   │ turn → semantic units │   │  │ verbatim   │  │ consolidated    │ │
+  │ • turn text      │   │ SU_i = (text, e_i,    │   │  │ SUs + e_i  │  │ summaries s_k   │ │
+  │ • thread id      │   │        meta_i)        │   │  └────────────┘  └─────────────────┘ │
+  └──────────────────┘   │ e_i ∈ ℝ⁷⁶⁸ (frozen)   │   │  ┌────────────┐  ┌─────────────────┐ │
+                         └───────────────────────┘   │  │ ENTITY /   │  │ PER-USER        │ │
+                                                     │  │ THREAD DAG │  │ SALIENCE VECTOR │ │
+                                                     │  └────────────┘  └─────────────────┘ │
+                                                     └──────────────┬───────────────────────┘
+                                                                    │ candidate set 𝒞 (top-M, M≈256)
+                                                                    │ cheap ANN prefilter (cosine)
+                                                                    ▼
+   ┌─ L4 ───────────────────────────┐        ┌─ L3 ────────────────────────────────────────┐
+   │ CONSOLIDATION CONTROLLER       │        │ QUANTUM RELEVANCE ENGINE  (QRE)             │
+   │                                │◀──────▶│                                             │
+   │ • replay buffer 𝓑 (reservoir)  │  θ, F  │  for each candidate c ∈ 𝒞:                  │
+   │ • QFIM anchor  Ω(θ,θ*)         │        │    x = Φ(q, c, u)  ∈ ℝ¹⁰²⁴, ‖x‖₂ = 1        │
+   │ • drift detector (PSI/KL)      │        │    |ψ₀⟩ = Σ xⱼ|j⟩         (amplitude enc.)  │
+   │ • task-boundary clock          │        │    |ψ_L⟩ = U(θ)|ψ₀⟩       (L× SU(4) brick)  │
+   │ • trust-region on Δθ           │        │    r_c = σ(β⟨ψ_L|Z_{N-1}|ψ_L⟩)              │
+   └────────────────────────────────┘        └────────────────────┬────────────────────────┘
+                                                                  │ relevance scores r ∈ [0,1]^M
+                                                                  ▼
+   ┌─ L6 ────────────────────────┐          ┌─ L5 ───────────────────────────────────────┐
+   │ FEEDBACK & EVALUATION       │          │ CONTEXT ASSEMBLER  (budgeted knapsack)     │
+   │                             │          │                                            │
+   │ • probe answers → labels    │◀─────────│  maximise Σ r_c · v_c − λ·redundancy(S)     │
+   │ • BWT / FWT / saturation    │  y, ŷ    │  s.t.  Σ tokens(c) ≤ B                     │
+   │ • Tr(F) plasticity monitor  │          │  → ordered prompt C                        │
+   └──────────────┬──────────────┘          └────────────────────┬───────────────────────┘
+                  │  loss ℒ, gradients (parameter-shift)          │
+                  └──────────────────────────────────────────────▶│
+                                          θ ← θ − η ∇ℒ            ▼
+                                                        ┌─ LLM (FROZEN) ──────────┐
+                                                        │  p(y | C)                │
+                                                        │  no gradient ever enters │
+                                                        └──────────────────────────┘
+</pre>
+
+  <div class="grid2" style="margin-top:28px">
+    <div class="panel">
+      <h3>L2 · The memory manifold in detail</h3>
+      <p class="caption">Four co-indexed stores, all keyed by semantic-unit id.</p>
+      <ul>
+        <li><strong>Episodic tier</strong> — verbatim SU text, speaker, timestamp, turn index, frozen embedding <code>e_i</code>. Write-once.</li>
+        <li><strong>Semantic tier</strong> — periodic consolidation: every <code>K</code> turns, an offline pass writes <em>new</em> summary nodes <code>s_k</code> that point at their sources. Summaries never replace sources; they are an added index level, so consolidation cannot destroy information.</li>
+        <li><strong>Entity/thread DAG</strong> — nodes for entities, decisions, commitments, open questions; edges for supersedes / contradicts / answers. Contradiction is represented, not resolved by overwrite — the DAG is how “user A said X, user B later said not-X” survives.</li>
+        <li><strong>Per-user salience</strong> — a vector <code>u ∈ ℝ<sup>d_u</sup></code> per participant, updated by EMA from their own turns. This is what makes the scorer participant-aware (kills failure mode F5).</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>L4 · What actually keeps the scorer stable</h3>
+      <p class="caption">Plasticity is intrinsic to the quantum layer; stability of the <em>scorer itself</em> still needs machinery.</p>
+      <ul>
+        <li><strong>Reservoir replay</strong> — buffer 𝓑 of past (query, candidate, label) triples sampled uniformly over history; each online step mixes a fresh minibatch with a replay minibatch at ratio 1:1.</li>
+        <li><strong>QFIM anchoring</strong> — penalty <code>Ω = ½(θ−θ*)ᵀ F_Q (θ−θ*)</code> using the quantum Fisher information at the last consolidation point <code>θ*</code>. This is the geometrically correct analogue of EWC on a curved parameter manifold.</li>
+        <li><strong>Trust region</strong> — clip <code>‖Δθ‖∞ ≤ δ</code> per task so no single conversational shift can rotate the circuit far.</li>
+        <li><strong>Drift detector</strong> — population-stability index on the score distribution triggers a consolidation checkpoint (recompute <code>F_Q</code>, reset <code>θ*</code>).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="why">
+  <div class="sec-head col">
+    <p class="eyebrow">03 — Why this beats the alternatives</p>
+    <h2>Six structural arguments</h2>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Claim</th><th>Mechanism</th><th>What would falsify it</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. Catastrophic forgetting of world knowledge is zero</strong></td><td>The LLM is frozen; no gradient path exists to its weights. Thread knowledge lives in ℳ, which is append-only.</td><td>Any measured drop in a held-out capability benchmark between session 1 and session N.</td></tr>
+        <tr><td><strong>2. Plasticity does not decay over long threads</strong></td><td>The only online-learned parameters are circuit angles on a compact torus. Unitarity bounds the operator norm at 1; Haar-averaged <code>Tr(F)</code> is bounded above and below, so learning capacity is invariant in <code>t</code> (Chen &amp; Zhang, Appendix B).</td><td><code>Tr(F)</code> of the QRE trending down across 500+ conversational tasks, or accuracy on <em>new</em> tasks decaying while replay accuracy holds.</td></tr>
+        <tr><td><strong>3. Context saturation is bounded by construction</strong></td><td>L5 solves a budgeted knapsack with an explicit token cap <code>B</code> and a redundancy penalty. Context length is a constant, independent of thread length.</td><td>Answer quality falling as thread length grows at fixed <code>B</code> — that would indicate the <em>selection</em>, not the budget, is the bottleneck.</td></tr>
+        <tr><td><strong>4. The quantum layer is falsifiable</strong></td><td>The QRE is drop-in replaceable by a classical MLP scorer with identical inputs, outputs and parameter count. Every claim is an A/B with one variable changed.</td><td>The MLP scorer matching the QRE on long-horizon plasticity metrics — a result you must be willing to publish.</td></tr>
+        <tr><td><strong>5. Multi-user coherence is explicit</strong></td><td>Participant salience <code>u</code> enters the encoding; the entity DAG stores contradictions as edges rather than resolving them by overwrite.</td><td>Persona bleed in the probe set: model attributing user A's stated preference to user B.</td></tr>
+        <tr><td><strong>6. It is buildable on a laptop</strong></td><td>10 qubits = a 1024-dim statevector. Exact simulation, no sampling noise, gradients by backprop through the simulator; parameter-shift kept only for hardware parity checks.</td><td>Nothing — this is an engineering property, and it is the reason the project can finish.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel warnbox col" style="margin-top:24px">
+    <h4>The honest caveat, stated up front</h4>
+    <p class="caption">The source paper's result is about <em>plasticity preservation</em>, and it explicitly notes that VQCs do <strong>not</strong> solve stability on their own. This blueprint therefore does not claim quantum advantage for memory. It claims: quantum for the part that must keep learning forever, classical append-only storage for the part that must never be lost. Any write-up that blurs this will be correctly attacked in review.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="pipeline">
+  <div class="sec-head col">
+    <p class="eyebrow">04 — Data pipeline</p>
+    <h2>Every transformation from raw JSONL to generated token</h2>
+  </div>
+  <div class="col" style="margin-bottom:26px">
+    <p>Shapes are given for the reference configuration: <code>N = 10</code> qubits, Hilbert dimension <code>d = 2¹⁰ = 1024</code>, embedding model output <code>d_e = 768</code>, candidate set <code>M = 256</code>, token budget <code>B = 3072</code>.</p>
+  </div>
+
+<pre class="ascii">
+ STAGE  OPERATION                                       OBJECT / SHAPE                       INVARIANT ENFORCED
+ ─────  ─────────────────────────────────────────────   ──────────────────────────────────   ─────────────────────────────
+ S0     Raw thread event                                {thread_id, user_id, ts, text}       schema-validated, immutable
+          │
+          ▼
+ S1     Segmentation into semantic units                list[SU], |SU| ≈ 1–3 sentences       every SU traceable to a turn
+          │  sentence split → merge to 20–60 tokens
+          │  attach (speaker, turn_idx, ts, role)
+          ▼
+ S2     Frozen encoding                                 e_i ∈ ℝ⁷⁶⁸                           encoder weights checksummed
+          │  e_i = Enc(text_i)          [no grad]                                            and never updated
+          ▼
+ S3     Whitening / decorrelation                       ẽ_i = W(e_i − μ) ∈ ℝ⁷⁶⁸             μ, W frozen after fit on a
+          │  PCA-whiten fitted ONCE on a held-out corpus                                     held-out corpus; never refit
+          ▼                                                                                  online (this is a silent
+ S4     Learned projection (classical, offline-trained) p_i = P ẽ_i ∈ ℝ²⁵⁶                   drift source if violated)
+          │  P ∈ ℝ²⁵⁶ˣ⁷⁶⁸, trained in Phase 3, then FROZEN for the continual run
+          ▼
+ S5     Feature assembly for one (query q, cand c, user u) pair
+          │
+          │   x_raw = [  p_q  ‖  p_c  ‖  p_q ⊙ p_c  ‖  ρ  ]                                 dim 256+256+256+256 = 1024
+          │              ▲       ▲        ▲            ▲
+          │              │       │        │            └ relational block ρ ∈ ℝ²⁵⁶ :
+          │              │       │        │                [ u (user salience, 64)
+          │              │       │        │                | Δt features, log-recency (16)
+          │              │       │        │                | graph feats: hops, degree,
+          │              │       │        │                  contradicts/supersedes (32)
+          │              │       │        │                | speaker-match one-hot (16)
+          │              │       │        │                | prior-selection count (8)
+          │              │       │        │                | zero pad (120) ]
+          │              │       │        └ elementwise product = interaction term
+          │              │       └ candidate projection
+          │              └ query projection
+          ▼
+ S6     L2 normalisation onto the unit sphere S¹⁰²³     x = x_raw / ‖x_raw‖₂                 ‖x‖₂ = 1 exactly (assert)
+          │                                                                                  → x IS a valid state vector
+          ▼
+ S7     Amplitude encoding into 10 qubits               |ψ₀⟩ = Σ_{j=0}^{1023} x_j |j⟩        1024 reals → 1024 amplitudes,
+          │                                             statevector ∈ ℂ¹⁰²⁴ (real-valued)    zero information loss
+          ▼
+ S8     Variational circuit, L brickwall layers         |ψ_ℓ⟩ = U_ℓ(θ_ℓ)|ψ_{ℓ-1}⟩            each U_ℓ unitary ⇒ ‖ψ_ℓ‖ = 1
+          │  each layer: 5 SU(4) gates on even pairs,                                        preserved at every layer
+          │              then 4 (or 5, periodic) on odd pairs
+          │  params per layer: 9 gates × 15 = 135 (brickwall, N=10)
+          ▼
+ S9     Measurement / readout                           ⟨Z⟩ = ⟨ψ_L| Z_{N-1} |ψ_L⟩ ∈ [−1,1]  single scalar per candidate
+          │  r_c = σ(β·⟨Z⟩ + b),   β, b learnable                                            ← decoherence boundary:
+          ▼                                                                                    quantum state collapses to
+ S10    Candidate scoring vector                        r ∈ [0,1]²⁵⁶                          one classical number here
+          │
+          ▼
+ S11    Budgeted selection (greedy submodular knapsack) S ⊂ 𝒞,  Σ tokens ≤ 3072              (1−1/e) approx guarantee
+          │  gain(c|S) = r_c·v_c − λ·max_{c'∈S} cos(p_c, p_c')                               redundancy explicitly priced
+          ▼
+ S12    Prompt assembly                                 C = [sys ‖ pinned ‖ S* ‖ recent-k ‖ q]  chronological within blocks,
+          │  S* = S ordered by turn index                                                    provenance tags preserved
+          ▼
+ S13    Frozen LLM generation                           y ~ p(y | C)                          no gradient crosses this line
+          │
+          ▼
+ S14    Feedback extraction                             (probe hit/miss, ratings, edits)      supervision for the NEXT
+          │  → label ℓ_c ∈ {0,1} for each c ∈ 𝒞                                              training step only
+          ▼
+ S15    Loss + update on θ, β, b only                   ℒ = BCE(r, ℓ) + λ_Ω·Ω(θ,θ*)           |θ| ≈ 135·L parameters
+                                                                                              LLM, Enc, W, P untouched
+</pre>
+
+  <div class="grid2" style="margin-top:28px">
+    <div class="panel tight">
+      <h4>Why 1024 and not "as many features as we have"</h4>
+      <p class="caption">Amplitude encoding is exactly lossless only when the classical vector length equals <code>2ᴺ</code>. Designing the feature block to land on 1024 exactly — rather than padding 900 features with 124 zeros — means every qubit carries signal instead of vacuum. Zero-padding is permitted only inside the relational block, where it is a deliberate reserve for later features.</p>
+    </div>
+    <div class="panel tight">
+      <h4>Why L2 normalisation is not a preprocessing detail</h4>
+      <p class="caption">It is the map from feature space to Hilbert space. It also destroys magnitude information — so any feature whose <em>scale</em> matters (recency, counts) must be encoded as an angle or a bounded ratio <em>before</em> S6, never as a raw magnitude. Getting this wrong is the single most common silent bug in amplitude-encoded pipelines.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="quantum">
+  <div class="sec-head col">
+    <p class="eyebrow">05 — The quantum layer, layer by layer</p>
+    <h2>Circuit, gradients, and the metrics that prove plasticity</h2>
+  </div>
+
+<pre class="ascii">
+  N = 10 qubits · brickwall SU(4) ansatz · depth L (start L = 8, sweep {4, 8, 12, 20})
+
+            ┌──────────── AMPLITUDE ENCODING ────────────┐
+   |0⟩ q0 ──┤                                            ├──■───────────■───────── ⋯
+   |0⟩ q1 ──┤                                            ├──■ V(θ₁)     │
+   |0⟩ q2 ──┤                                            ├──■───────    ■ V(θ₆)
+   |0⟩ q3 ──┤   StatePreparation(x),  ‖x‖₂ = 1           ├──■ V(θ₂)     │
+   |0⟩ q4 ──┤                                            ├──■───────    ■ V(θ₇)
+   |0⟩ q5 ──┤   |ψ₀⟩ = Σⱼ xⱼ |j⟩                         ├──■ V(θ₃)     │
+   |0⟩ q6 ──┤   (Möttönen / Shende-Bullock-Markov        ├──■───────    ■ V(θ₈)
+   |0⟩ q7 ──┤    decomposition, depth O(2ᴺ))             ├──■ V(θ₄)     │
+   |0⟩ q8 ──┤                                            ├──■───────    ■ V(θ₉)
+   |0⟩ q9 ──┤                                            ├──■ V(θ₅)     │        ⟨Z⟩
+            └────────────────────────────────────────────┘  └─ even ─┘  └─ odd ─┘   │
+                                                              LAYER 1 (135 params)  ▼
+                                                              × L layers          σ(β⟨Z⟩+b)
+
+  Each V(θ) is a GENERAL two-qubit gate — 15 real parameters, the full su(4) algebra:
+
+      V(θ) = exp( −(i/2) · Σ_{(α,β)≠(0,0)} θ_{αβ} (σ_α ⊗ σ_β) ),   σ ∈ {I, X, Y, Z}
+
+  Not a hardware-efficient Ry/Rz/CNOT block. The general gate reaches any 2-qubit unitary,
+  which is what makes the per-layer expressivity high enough that shallow depth suffices —
+  and it is the exact ansatz whose plasticity behaviour the reference paper establishes.
+</pre>
+
+  <div class="grid2" style="margin-top:26px">
+    <div class="panel">
+      <h3>Gradients</h3>
+      <div class="math">∂⟨Z⟩/∂θ_k = ½[ ⟨Z⟩(θ_k + π/2) − ⟨Z⟩(θ_k − π/2) ]</div>
+      <ul>
+        <li><strong>In simulation</strong> (all of Phases 3–8): backpropagate through the statevector simulator. Exact, and ~2·|θ| times cheaper than parameter-shift.</li>
+        <li><strong>Parameter-shift</strong> is implemented anyway and unit-tested to agree with autodiff to <code>1e-6</code>. It is the only path that transfers to hardware, and the agreement test is what proves the simulator is correct.</li>
+        <li><strong>Optimiser</strong>: Adam, <code>lr = 0.01–0.03</code> (quantum circuits tolerate — and need — a far larger lr than the classical <code>1e-3</code>; the reference protocol uses 0.03).</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>The three metrics that must be logged every task</h3>
+      <ul>
+        <li><strong>Tr(F)</strong> — empirical Fisher trace on a <em>fixed probe batch</em> that never changes for the whole run. This is the plasticity instrument. Flat ⇒ learning capacity preserved; collapsing ⇒ the model is going functionally dead.</li>
+        <li><strong>‖∇θ‖₂ and ‖θ‖ (mod 2π)</strong> — normalised to the mean of the first 10 tasks. In the classical arm these grow without bound; in the quantum arm they must stay flat. Divergence between arms is the core empirical result.</li>
+        <li><strong>Effective rank of the representation</strong> — participation ratio of the eigenspectrum of the readout-layer covariance. Detects collapse that accuracy alone hides.</li>
+      </ul>
+      <p class="caption">Log all three for both arms, every task, to the same schema. The plots write themselves.</p>
+    </div>
+  </div>
+
+  <div class="panel col" style="margin-top:24px">
+    <h3>Trainability guard: check for barren plateaus before committing to a depth</h3>
+    <p class="caption">A deep, highly entangling ansatz on 10 qubits with a global observable can exhibit exponentially vanishing gradient variance. The guard, run once in Phase 5:</p>
+    <ul>
+      <li>Sample 500 random <code>θ</code>; compute <code>Var[∂⟨Z⟩/∂θ_k]</code> for a fixed <code>k</code> at depths {2,4,8,12,20,30}.</li>
+      <li>Plot <code>log Var</code> vs depth. If it decays exponentially past depth <code>L*</code>, cap the ansatz at <code>L*</code>.</li>
+      <li>Mitigations in priority order: <strong>(a)</strong> local observable — measure <code>Z</code> on one qubit, never a global product, <strong>(b)</strong> identity-block initialisation (<code>θ ≈ 0</code> + small noise, so <code>U ≈ I</code> at step 0), <strong>(c)</strong> layerwise growth — train depth 2, freeze, append 2 more.</li>
+      <li>Record the chosen <code>L</code> and the variance curve — this is a required figure in any write-up.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="plan">
+  <div class="sec-head col">
+    <p class="eyebrow">06 — Execution</p>
+    <h2>Ten phases, from the first line of dataset generation to the final evaluation figure</h2>
+  </div>
+  <div class="col" style="margin-bottom:12px">
+    <p>Phases are sequential because each one's exit criterion is the next one's precondition. The numbering is a real dependency order, not decoration. Nothing in a later phase should be started while an earlier exit criterion is red.</p>
+  </div>
+
+  <div class="phase">
+    <div class="idx">00<small>Foundation</small></div>
+    <div class="body">
+      <h3>Reproducible substrate</h3>
+      <p><strong>Objective —</strong> make every subsequent experiment re-runnable by someone else on a different machine, and make randomness a controlled variable rather than an excuse.</p>
+      <ol>
+        <li>Pin the environment: Python 3.11, <code>pennylane</code> or <code>tensorcircuit-ng</code> (the reference paper uses the latter; either is fine — pick one and never mix), <code>jax</code> or <code>torch</code> backend, <code>sentence-transformers</code>, <code>faiss-cpu</code>, <code>sqlite</code>. Lockfile committed.</li>
+        <li>Create the repo skeleton: <code>data/</code>, <code>src/{ingest,encode,memory,quantum,assemble,eval}/</code>, <code>configs/</code>, <code>runs/</code>, <code>notebooks/</code>, <code>tests/</code>.</li>
+        <li>Single <code>Config</code> dataclass loaded from YAML — qubit count, depth, budget <code>B</code>, <code>M</code>, learning rates, seeds. No magic numbers anywhere else in the codebase.</li>
+        <li>Global seeding utility covering python/numpy/torch/jax; every run writes <code>runs/&lt;timestamp&gt;-&lt;githash&gt;/config.yaml</code> alongside its results.</li>
+        <li>Structured run logger: one JSONL row per task with <code>{task_id, arm, acc, tr_fim, grad_norm, weight_norm, eff_rank, tokens_used, latency_ms}</code>. Define this schema now — every later phase writes into it.</li>
+        <li>CI-lite: a <code>make smoke</code> target that runs the whole pipeline end-to-end on 20 synthetic turns in under 60 seconds. Keep it green from Phase 1 onward.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b><code>make smoke</code> passes from a clean clone; two runs with the same seed produce bit-identical logs.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">01<small>Dataset</small></div>
+    <div class="body">
+      <h3>Generate the multi-user thread corpus — with ground truth built in</h3>
+      <p><strong>Objective —</strong> a corpus where the correct answer to "what should have been retrieved?" is known by construction. This is the phase that decides whether the whole project is measurable, so it comes before any modelling.</p>
+      <ol>
+        <li>Define the thread schema: <code>{thread_id, turn_idx, user_id, role, ts, text, injected_fact_id?, probe_for?}</code>.</li>
+        <li>Build a <strong>fact bank</strong>: 500–2000 atomic facts, each <code>{fact_id, owner_user, text, entity, polarity, valid_from, superseded_by?}</code>. Include deliberate contradictions and supersessions (user changes their mind at turn 300).</li>
+        <li>Write the thread generator: for each synthetic thread (target 200–2000 turns, 3–8 participants), interleave (i) fact-introduction turns, (ii) filler conversation, (iii) <strong>probe turns</strong> at controlled distances — 10, 50, 200, 1000 turns after the fact was introduced.</li>
+        <li>Each probe turn stores the exact <code>fact_id</code> set required to answer it. That set is the retrieval ground truth. Recall@budget becomes directly computable.</li>
+        <li>Generate three difficulty regimes: <em>single-owner</em> (facts from one user), <em>multi-owner</em> (facts split across users, tests F5), <em>adversarial</em> (superseded and contradicted facts, tests whether the system returns the stale one).</li>
+        <li>Use an LLM to write the natural-language surface of the turns from the structured plan — never let the LLM invent the plan, or ground truth is lost.</li>
+        <li>Hold out 20% of threads as a test split, sealed. Also reserve a small human-written thread set (even 3–5 real threads) as an external validity check.</li>
+        <li>Write <code>validate_dataset.py</code>: asserts every probe's required facts appear earlier in the thread, no fact id collisions, distance distribution matches spec. Run it in CI.</li>
+        <li>Publish dataset statistics: turns per thread, facts per thread, probe distance histogram, tokens per SU.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>A trivial oracle retriever (given <code>fact_id</code>s directly) scores 1.00 on all probes; a random retriever scores near chance. The measurement instrument is calibrated.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">02<small>Baselines</small></div>
+    <div class="body">
+      <h3>Classical baselines and the evaluation harness</h3>
+      <p><strong>Objective —</strong> know exactly what you must beat, before building the thing that must beat it. Baselines built after the model are always accidentally handicapped.</p>
+      <ol>
+        <li><strong>B0 — Truncation:</strong> last-<code>k</code> turns until the budget fills. The floor.</li>
+        <li><strong>B1 — Vanilla RAG:</strong> cosine top-<code>k</code> over SU embeddings, no learning.</li>
+        <li><strong>B2 — Rolling summarisation:</strong> LLM-summarise every <code>K</code> turns, keep summary + recent window. This is the standard industrial approach and your real competition.</li>
+        <li><strong>B3 — Classical learned scorer:</strong> an MLP with the <em>same</em> 1024-dim input, same output, and matched parameter count to the QRE. This is the arm the quantum claim is tested against; it must be built with equal care.</li>
+        <li>Implement the metric suite: Recall@B, Answer-F1 on probes, BWT (backward transfer), FWT (forward transfer), plasticity metrics from §05, tokens used, latency.</li>
+        <li>Implement the continual-learning task protocol: a "task" = a window of <code>W</code> turns; tasks arrive sequentially; after each, evaluate on all past probe sets to get the BWT matrix.</li>
+        <li>Freeze the harness API: <code>score(query, candidates, user) → r</code>. Every arm, including the quantum one, implements exactly this interface.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>All four baselines run end-to-end on the full corpus and produce a comparable results table. B2 beats B0 (sanity).</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">03<small>Classical encoder</small></div>
+    <div class="body">
+      <h3>The frozen encoding stack (S1–S4)</h3>
+      <p><strong>Objective —</strong> a deterministic, frozen, well-conditioned map from text to a 256-dim projection — the classical half of the interface.</p>
+      <ol>
+        <li>Implement segmentation (S1) with a deterministic splitter; unit-test that concatenating SUs reconstructs the turn.</li>
+        <li>Select the encoder (e.g. a 768-dim sentence embedding model), record its exact revision hash, and wrap it in a cached, batched, <code>torch.no_grad()</code> call. Cache embeddings to disk keyed by <code>sha256(text)</code> — you will re-run this thousands of times.</li>
+        <li>Fit PCA-whitening (S3) on the held-out corpus only. Persist <code>μ, W</code>. Add an assertion that they are never refit during a continual run.</li>
+        <li>Train the projection <code>P: ℝ⁷⁶⁸ → ℝ²⁵⁶</code> (S4) offline with a contrastive objective on the <em>training</em> split only — positives are (probe, required fact), negatives are hard in-thread distractors. Then freeze <code>P</code> permanently.</li>
+        <li>Verify the projection retains signal: kNN retrieval accuracy at 256-dim within 2% of 768-dim.</li>
+        <li>Implement the relational block <code>ρ</code> (recency, graph, speaker, salience features) with every feature bounded to <code>[−1,1]</code> <em>before</em> normalisation — see the S6 warning.</li>
+        <li>Write <code>assemble_features()</code> returning exactly 1024 dims, with a hard assertion on the shape and a second on <code>‖x‖₂ = 1 ± 1e-6</code>.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>Feature assembly is deterministic, unit-tested, cached, and produces unit-norm 1024-vectors for every (q, c, u) triple in the corpus.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">04<small>Memory</small></div>
+    <div class="body">
+      <h3>Build the stability manifold ℳ</h3>
+      <p><strong>Objective —</strong> a store where writes never destroy, retrieval is fast, and provenance always survives to the prompt.</p>
+      <ol>
+        <li>SQLite (or DuckDB) schema: <code>semantic_units</code>, <code>facts</code>, <code>summaries</code>, <code>edges</code>, <code>user_salience</code>, <code>selection_log</code>. Enforce append-only with a trigger that rejects <code>UPDATE</code>/<code>DELETE</code> on <code>semantic_units</code>.</li>
+        <li>FAISS index over SU embeddings for the top-<code>M</code> ANN prefilter; rebuild incrementally, and version the index alongside the run.</li>
+        <li>Consolidation job: every <code>K = 50</code> turns, emit summary nodes with edges to their sources. Assert the source rows still exist and are unmodified after every consolidation.</li>
+        <li>Entity/DAG extraction: entities, decisions, commitments, open questions, plus <code>supersedes</code> / <code>contradicts</code> / <code>answers</code> edges. A rule-based extractor is acceptable in v1; make the interface swappable.</li>
+        <li>Per-user salience: EMA update <code>u ← (1−α)u + α·p_turn</code>, <code>α ≈ 0.05</code>, one vector per participant per thread.</li>
+        <li>Provenance renderer: every selected SU carries <code>[user, turn N, t]</code> into the prompt. Cheap, and it is what makes multi-user answers auditable.</li>
+        <li>Benchmark: p95 latency for candidate retrieval at 100k SUs must stay under 50 ms.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>Append-only property proven by test (attempted mutation raises); ANN prefilter recall of the ground-truth fact set at <code>M=256</code> exceeds 0.95 — the ceiling on everything downstream.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">05<small>Quantum core</small></div>
+    <div class="body">
+      <h3>Encoding, ansatz, readout, and the trainability study</h3>
+      <p><strong>Objective —</strong> a correct, tested, differentiable quantum scorer, with its depth chosen by evidence rather than taste.</p>
+      <ol>
+        <li>Implement amplitude encoding (S7). Test: for random unit <code>x</code>, the simulated statevector equals <code>x</code> to <code>1e-7</code>, and <code>Σ|amp|² = 1</code>.</li>
+        <li>Implement the general <code>SU(4)</code> gate from the 15-parameter Pauli exponential map. Test: the resulting matrix is unitary (<code>U†U = I</code>) and, at <code>θ = 0</code>, equals identity.</li>
+        <li>Assemble the brickwall layer: even pairs (0,1)(2,3)(4,5)(6,7)(8,9), then odd pairs (1,2)(3,4)(5,6)(7,8) — and optionally (9,0) for a ring. Count parameters and assert against the formula.</li>
+        <li>Implement readout <code>r = σ(β⟨Z_{N-1}⟩ + b)</code>. Use a <em>local</em> observable on a single qubit — this is a barren-plateau mitigation, not a stylistic choice.</li>
+        <li>Verify gradients: autodiff vs parameter-shift agreement to <code>1e-6</code> on random inputs. Do not proceed until this passes.</li>
+        <li>Run the barren-plateau study from §05: gradient variance vs depth over 500 random initialisations. Choose <code>L</code>. Save the figure.</li>
+        <li>Overfit sanity check: 200 training triples, no regularisation — the circuit must reach near-perfect training accuracy. If it cannot, the ansatz or the encoding is broken; fix it here, not later.</li>
+        <li>Profile: measure per-candidate scoring time. If scoring <code>M=256</code> candidates exceeds ~200 ms, batch the statevector simulation over candidates (this is a single tensor contraction — treat it as a batched matmul, not a loop).</li>
+        <li>Implement the classical twin (B3) against the identical interface, with matched parameter count. Both arms must share the same data loader, seeds, and optimiser settings.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>Gradient test green; depth chosen with evidence; the circuit overfits a small set; quantum and classical arms are parameter-matched and interface-identical.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">06<small>Continual training</small></div>
+    <div class="body">
+      <h3>The stability machinery around the plastic core (L4)</h3>
+      <p><strong>Objective —</strong> train the scorer over a long task sequence without letting recent conversation destroy its ability to rank older material.</p>
+      <ol>
+        <li>Implement the task loop: for <code>t = 1…T</code>, draw the turn window, build training triples from probes inside it, train <code>E</code> epochs, then evaluate on <em>all</em> tasks <code>≤ t</code>.</li>
+        <li>Reservoir replay buffer 𝓑 (capacity ~10k triples, uniform-over-history sampling). Each step: half fresh, half replay.</li>
+        <li>Quantum Fisher information: implement <code>F_Q</code> via the metric tensor (its diagonal/block-diagonal approximation is sufficient and much cheaper). Recompute at each consolidation checkpoint.</li>
+        <li>Anchor penalty <code>Ω(θ,θ*) = ½(θ−θ*)ᵀF_Q(θ−θ*)</code> added to the loss with weight <code>λ_Ω</code>; sweep <code>λ_Ω ∈ {0, 1e-3, 1e-2, 1e-1, 1}</code> — the <code>λ_Ω = 0</code> arm is a required ablation, because it isolates how much stability the quantum core gives you for free (per the source paper: none).</li>
+        <li>Trust region: clip <code>‖Δθ‖∞ ≤ δ</code> per task; log clip frequency.</li>
+        <li>Drift detector on the score distribution (PSI or KL vs the last checkpoint); when it fires, checkpoint <code>θ* ← θ</code> and recompute <code>F_Q</code>.</li>
+        <li>Angle hygiene: wrap <code>θ</code> into <code>(−π, π]</code> after every step. Report both wrapped and unwrapped norms — the unwrapped one is what shows the classical arm diverging.</li>
+        <li>Run the long horizon: <code>T ≥ 500</code> tasks per arm, ≥3 seeds. This is the experiment; everything before was preparation.</li>
+        <li>Log the full BWT matrix <code>A[i][j]</code> = accuracy on task <code>j</code> after training through task <code>i</code>. Every headline continual-learning number derives from this matrix.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>Both arms complete <code>T ≥ 500</code> tasks × 3 seeds with the full metric suite logged; the quantum arm's <code>Tr(F)</code> and gradient norm are flat while the classical arm's are not — or you have an honest negative result, which is still a result.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">07<small>Assembly</small></div>
+    <div class="body">
+      <h3>Budgeted context assembly and LLM integration (L5)</h3>
+      <p><strong>Objective —</strong> convert scores into the best possible prompt under a hard token ceiling — the layer that actually defeats saturation.</p>
+      <ol>
+        <li>Exact token accounting with the target model's own tokenizer. Estimated token counts are a source of silent budget overruns.</li>
+        <li>Greedy submodular knapsack over <code>gain(c|S) = r_c·v_c − λ·max_{c'∈S} cos(p_c, p_c')</code>, with <code>v_c</code> a value prior (facts &gt; summaries &gt; filler). Sort by gain-per-token.</li>
+        <li>Reserve fixed sub-budgets: system prompt, pinned constraints (never evictable), selected memories, last-<code>k</code> verbatim turns, the query. Assert the sum equals <code>B</code>.</li>
+        <li>Supersession filter: if the DAG marks a candidate as superseded, either drop it or include it explicitly labelled as outdated together with its replacement. Never include a stale fact unlabelled.</li>
+        <li>Prompt template with provenance tags and chronological ordering inside each block. Version the template — prompt changes invalidate comparisons, so they must be tracked like code.</li>
+        <li>Deterministic decoding for evaluation (<code>temperature = 0</code>, fixed seed); a separate sampled run only for qualitative review.</li>
+        <li>Saturation sweep: vary <code>B ∈ {512, 1024, 2048, 4096, 8192}</code> for every arm and plot quality vs budget. The interesting result is where each arm's curve turns over — that is context saturation, measured rather than asserted.</li>
+        <li>Latency budget: end-to-end p95 under 1s excluding LLM generation.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>Budget never exceeded on any sample; quality-vs-budget curves produced for all arms; the QRE arm reaches B2's best quality at a materially smaller <code>B</code>.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">08<small>Evaluation</small></div>
+    <div class="body">
+      <h3>Full evaluation, ablation, and stress</h3>
+      <p><strong>Objective —</strong> produce results that survive an adversarial reader.</p>
+      <ol>
+        <li>Headline table: all arms × {Recall@B, Answer-F1, BWT, FWT, final-average-accuracy, tokens, latency}, mean ± std over ≥3 seeds.</li>
+        <li>The four core figures: (i) accuracy vs task index, (ii) <code>Tr(F)</code> vs task index, (iii) gradient/weight norm vs task index, (iv) quality vs token budget.</li>
+        <li>Ablations, one variable each: no replay · no QFIM anchor · no user salience · no DAG/supersession · classical scorer · random scorer · oracle retriever (upper bound).</li>
+        <li>Stress tests: probe distance 1000+ turns; adversarial superseded facts; a 9th participant introduced mid-thread; a topic switch with no warning.</li>
+        <li>Noise study: simulate depolarising noise at <code>p ∈ {1e-4, 5e-4, 1e-3}</code> to check that the plasticity advantage survives NISQ-realistic conditions (the reference paper reports it does at <code>5e-4</code>).</li>
+        <li>Significance: paired bootstrap over threads, not over samples — threads are the independent unit.</li>
+        <li>Failure analysis: sample 50 losses versus the oracle and categorise them. Retrieval miss, ranking error, budget eviction, or generation failure — each points at a different layer.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>Every claim in §03 has a corresponding figure or table, including the ones that did not go your way.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="idx">09<small>Hardening</small></div>
+    <div class="body">
+      <h3>Packaging, hardware parity, and the write-up</h3>
+      <p><strong>Objective —</strong> make the result transferable to another person and another machine.</p>
+      <ol>
+        <li>Hardware parity path: run the trained circuit on a real backend or a noisy shot-based simulator with 1024–8192 shots; compare shot-estimated <code>⟨Z⟩</code> against exact. Report the shot count needed for score-ranking to be stable.</li>
+        <li>Scaling study: <code>N ∈ {8, 10, 12}</code> qubits (<code>d ∈ {256, 1024, 4096}</code>). Report accuracy and wall-clock; be explicit about where classical simulation stops being cheap.</li>
+        <li>Serving path: batch scoring, embedding and score caches, graceful degradation to B1 cosine ranking if the QRE is unavailable.</li>
+        <li>Reproduction kit: <code>make reproduce</code> regenerating every figure from raw logs; archive the sealed test split and dataset generator seed.</li>
+        <li>Write-up structure mirroring this document: dilemma → dual-manifold thesis → pipeline → results → ablations → limitations. State plainly that stability comes from architecture and plasticity from geometry.</li>
+        <li>Limitations section, written honestly: exact simulation only up to ~20 qubits; encoding depth <code>O(2ᴺ)</code> is the real hardware bottleneck; the frozen LLM caps ultimate quality; synthetic corpora overstate probe cleanliness.</li>
+      </ol>
+      <div class="exit"><b>Exit criterion</b>A colleague reproduces the headline table from a clean clone using only the README.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section id="eval">
+  <div class="sec-head col">
+    <p class="eyebrow">07 — Instrumentation</p>
+    <h2>The metric definitions, written down once</h2>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Metric</th><th>Definition</th><th>Reads as</th></tr></thead>
+      <tbody>
+        <tr><td>Recall@B</td><td class="num">|required ∩ selected| / |required|</td><td>Retrieval ceiling — nothing downstream can exceed it</td></tr>
+        <tr><td>BWT</td><td class="num">(1/(T−1)) Σ<sub>j&lt;T</sub> (A[T][j] − A[j][j])</td><td>Negative ⇒ forgetting. Target ≈ 0.</td></tr>
+        <tr><td>FWT</td><td class="num">(1/(T−1)) Σ<sub>j&gt;1</sub> (A[j−1][j] − b<sub>j</sub>)</td><td>Positive ⇒ prior tasks help new ones</td></tr>
+        <tr><td>Plasticity index</td><td class="num">mean A[j][j] over last 50 tasks ÷ over first 50</td><td>&lt; 1 ⇒ loss of plasticity. This is the paper's core quantity.</td></tr>
+        <tr><td>Tr(F)</td><td class="num">Σ<sub>k</sub> 𝔼[(∂ log p / ∂θ<sub>k</sub>)²] on the fixed probe batch</td><td>Effective learning capacity; collapse ⇒ functionally dead parameters</td></tr>
+        <tr><td>Saturation point</td><td class="num">argmax<sub>B</sub> quality(B), per arm</td><td>Where more context starts hurting</td></tr>
+        <tr><td>Persona bleed</td><td class="num">fraction of answers attributing user A's fact to user B</td><td>The multi-user failure mode, made numeric</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="caption col" style="margin-top:16px">The Plasticity index and Tr(F) are computed identically for the quantum and classical arms — same probe batch, same estimator, same task boundaries. That symmetry is what makes the comparison a claim rather than an anecdote.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="risk" style="border-bottom:none">
+  <div class="sec-head col">
+    <p class="eyebrow">08 — Risk register</p>
+    <h2>What will most likely go wrong, and the pre-decided response</h2>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Risk</th><th>Early signal</th><th>Pre-decided response</th></tr></thead>
+      <tbody>
+        <tr><td>Barren plateau at chosen depth</td><td>Gradient variance decaying exponentially in the Phase 5 study</td><td>Cap depth at <code>L*</code>; local observable; identity-block init; layerwise growth</td></tr>
+        <tr><td>Classical scorer matches the QRE</td><td>Overlapping Tr(F) curves past task 300</td><td>Report it. The plasticity claim is falsifiable by design; a null result on a well-built harness is publishable and honest.</td></tr>
+        <tr><td>ANN prefilter drops the ground-truth fact</td><td>Phase 4 recall at <code>M</code> below 0.95</td><td>Raise <code>M</code>, add BM25 hybrid retrieval, add entity-graph expansion of the candidate set</td></tr>
+        <tr><td>Amplitude encoding depth dominates runtime</td><td>Scoring <code>M=256</code> exceeding 200 ms</td><td>Batch the statevector prep as one tensor op; cache candidate-side sub-states; consider angle encoding + re-uploading for the hardware path</td></tr>
+        <tr><td>Synthetic corpus is too easy</td><td>B1 already near the oracle</td><td>Increase distractor density, extend probe distance, add the adversarial supersession regime</td></tr>
+        <tr><td>Feature-scale information lost at S6</td><td>Recency/count features showing zero learned weight</td><td>Re-encode magnitudes as bounded angles before normalisation; verify by ablating each feature block</td></tr>
+        <tr><td>Prompt-template drift invalidating comparisons</td><td>Quality shifting between runs with no code change</td><td>Version templates; treat a template change as a new experiment, never a patch to an old one</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel col" style="margin-top:34px">
+    <h3>The one-paragraph version</h3>
+    <p>Freeze the LLM so it cannot forget. Store every semantic unit append-only so knowledge cannot be overwritten. Let the only online-learned component be a 10-qubit variational circuit that scores relevance — because its parameters live on a compact unitary manifold where gradient norms stay bounded and learning capacity provably cannot collapse, it can keep adapting for as long as the conversation runs. Give that circuit an explicit stability mechanism of its own (replay plus a QFIM anchor), since the quantum geometry buys plasticity and nothing else. Then defeat context saturation where it actually lives: a budgeted knapsack that decides what gets into a fixed-size prompt. Stability is architectural, plasticity is geometric, and the two never share a coordinate system.</p>
+  </div>
+</section>
+
+</div>

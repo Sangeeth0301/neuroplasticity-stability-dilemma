@@ -1,0 +1,51 @@
+{
+  "encoder": {
+    "backend": "sentence-transformers",
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "dim": 384,
+    "revision": "local"
+  },
+  "artifacts": {
+    "whiten": "C:\\Users\\sange\\OneDrive\\Desktop\\quantum\\qcs\\data\\processed\\whiten.npz",
+    "projection": "C:\\Users\\sange\\OneDrive\\Desktop\\quantum\\qcs\\data\\processed\\projection.npz",
+    "cache": "C:\\Users\\sange\\OneDrive\\Desktop\\quantum\\qcs\\data\\interim\\emb_cache_sentence-transformers.npz"
+  },
+  "n_sus": 14400,
+  "n_pairs": 1200,
+  "recall_curves": {
+    "raw": [
+      0.14166666666666666,
+      0.2833333333333333,
+      0.4041666666666667,
+      0.6125,
+      0.8
+    ],
+    "whitened": [
+      0.1375,
+      0.2875,
+      0.4125,
+      0.625,
+      0.8041666666666667
+    ],
+    "projected": [
+      0.4875,
+      0.8666666666666667,
+      0.9583333333333334,
+      0.9916666666666667,
+      0.9958333333333333
+    ]
+  },
+  "block_shares": {
+    "p_q": 0.3499999940395355,
+    "p_c": 0.3499999940395355,
+    "interaction": 0.19999997317790985,
+    "rho": 0.10000000894069672
+  },
+  "participation_ratio": 188.58596801757812,
+  "projection_history": {
+    "epoch": 19,
+    "loss": 0.009872023947536945,
+    "rank1_acc": 1.0
+  },
+  "cohens_d_hard": 4.241089344024658
+}

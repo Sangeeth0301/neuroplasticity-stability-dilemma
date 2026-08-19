@@ -1,0 +1,32 @@
+{
+  "counts": {
+    "semantic_units": 4800,
+    "facts": 1867,
+    "summaries": 96,
+    "edges": 6614,
+    "selection_log": 0
+  },
+  "recall": {
+    "8": 1.0,
+    "16": 1.0,
+    "32": 1.0,
+    "64": 1.0,
+    "128": 1.0,
+    "256": 1.0,
+    "512": 1.0
+  },
+  "recall_at_configured_M": 1.0,
+  "graph": {
+    "n_entities": 160,
+    "n_supersedes": 16
+  },
+  "edges": {
+    "shares_entity": 1782,
+    "summarises": 4800,
+    "supersedes": 16,
+    "contradicts": 16
+  },
+  "stale_units": 16,
+  "salience_separation": 0.8852589861024172,
+  "n_probes": 480
+}
