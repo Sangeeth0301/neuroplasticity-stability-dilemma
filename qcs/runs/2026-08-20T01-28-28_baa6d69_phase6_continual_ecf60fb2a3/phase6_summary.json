@@ -1,0 +1,119 @@
+{
+  "n_tasks": 120,
+  "probes_per_task": 6,
+  "metrics": {
+    "cosine": {
+      "recall@1": 0.8944444444444445,
+      "recall@3": 0.9930555555555556,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 0.9425,
+      "auc": 0.9320822531270662,
+      "rank1": 0.8944444444444445,
+      "stale_above_current": 0.0776255707762557,
+      "n_probes": 720.0,
+      "n_stale_cases": 219.0
+    },
+    "recency": {
+      "recall@1": 0.025,
+      "recall@3": 0.13055555555555556,
+      "recall@5": 0.19444444444444445,
+      "recall@10": 0.33055555555555555,
+      "mrr": 0.12420424084800885,
+      "auc": 0.5315879403329584,
+      "rank1": 0.025,
+      "stale_above_current": 0.5205479452054794,
+      "n_probes": 720.0,
+      "n_stale_cases": 219.0
+    },
+    "random": {
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.001388888888888889,
+      "recall@10": 0.004166666666666667,
+      "mrr": 0.03746574935104628,
+      "auc": 0.5530377655675904,
+      "rank1": 0.0,
+      "stale_above_current": 0.6894977168949772,
+      "n_probes": 720.0,
+      "n_stale_cases": 219.0
+    },
+    "oracle": {
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 1.0,
+      "auc": 1.0,
+      "rank1": 1.0,
+      "stale_above_current": 0.0,
+      "n_probes": 720.0,
+      "n_stale_cases": 219.0
+    },
+    "quantum_s7": {
+      "recall@1": 0.9111111111111111,
+      "recall@3": 0.9875,
+      "recall@5": 0.9972222222222222,
+      "recall@10": 1.0,
+      "mrr": 0.9495254629629629,
+      "auc": 0.9976851851851851,
+      "rank1": 0.9111111111111111,
+      "stale_above_current": 0.0045662100456621,
+      "n_probes": 720.0,
+      "n_stale_cases": 219.0
+    },
+    "linear_s7": {
+      "recall@1": 0.9805555555555555,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 0.9900462962962961,
+      "auc": 0.9996693121693122,
+      "rank1": 0.9805555555555555,
+      "stale_above_current": 0.0,
+      "n_probes": 720.0,
+      "n_stale_cases": 219.0
+    },
+    "mlp_s7": {
+      "recall@1": 0.9986111111111111,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 0.9993055555555556,
+      "auc": 0.9999779541446208,
+      "rank1": 0.9986111111111111,
+      "stale_above_current": 0.0,
+      "n_probes": 720.0,
+      "n_stale_cases": 219.0
+    }
+  },
+  "continual": {
+    "quantum_s7": {
+      "A": null,
+      "bwt": 0.027527209371328354,
+      "fwt": 0.0,
+      "plasticity_index": 1.7072317600250244,
+      "final_average": 0.9449834823608398,
+      "n_params": 1080.0,
+      "seconds": 406.1798083782196
+    },
+    "linear_s7": {
+      "A": null,
+      "bwt": 0.046262700110673904,
+      "fwt": 0.0,
+      "plasticity_index": 1.2800043821334839,
+      "final_average": 0.9856481552124023,
+      "n_params": 1025.0,
+      "seconds": 2.6702258586883545
+    },
+    "mlp_s7": {
+      "A": null,
+      "bwt": 0.014779242686927319,
+      "fwt": 0.0,
+      "plasticity_index": 1.0819607973098755,
+      "final_average": 0.9965277314186096,
+      "n_params": 65665.0,
+      "seconds": 19.678292751312256
+    }
+  }
+}

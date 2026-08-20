@@ -90,8 +90,11 @@ class QRE(nn.Module):
         """
         self.theta.copy_(torch.remainder(self.theta + torch.pi, 2 * torch.pi) - torch.pi)
 
+    @torch.no_grad()
     def theta_norm(self, wrapped: bool = True) -> float:
-        t = torch.remainder(self.theta + torch.pi, 2 * torch.pi) - torch.pi if wrapped else self.theta
+        t = self.theta.detach()
+        if wrapped:
+            t = torch.remainder(t + torch.pi, 2 * torch.pi) - torch.pi
         return float(t.norm())
 
     def grad_norm(self) -> float:

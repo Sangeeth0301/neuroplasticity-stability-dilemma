@@ -34,6 +34,7 @@ def make_model(name: str, cfg: Config, seed: int):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--config", nargs="*", default=[])
     ap.add_argument("--threads", type=int, default=12)
     ap.add_argument("--probes", type=int, default=None)
     ap.add_argument("--probes-per-task", type=int, default=4)
@@ -45,7 +46,7 @@ def main() -> None:
     ap.add_argument("--tag", default="phase6_continual")
     args = ap.parse_args()
 
-    cfg = Config.load()
+    cfg = Config.load(*args.config)
     cfg.validate()
     if args.seed is not None:
         cfg.seed = args.seed

@@ -32,9 +32,21 @@ def auc(scores: np.ndarray, y: np.ndarray) -> float:
     pos, neg = scores[y > 0], scores[y == 0]
     if len(pos) == 0 or len(neg) == 0:
         return float("nan")
-    order = np.argsort(np.concatenate([pos, neg]))
+    all_s = np.concatenate([pos, neg])
+    order = np.argsort(all_s)
     ranks = np.empty(len(order), float)
     ranks[order] = np.arange(1, len(order) + 1)
+    # average ranks within tie groups — a saturating scorer produces many exact ties,
+    # and naive ranking would report an arbitrary AUC for it
+    s_sorted = all_s[order]
+    i = 0
+    while i < len(s_sorted):
+        j = i
+        while j + 1 < len(s_sorted) and s_sorted[j + 1] == s_sorted[i]:
+            j += 1
+        if j > i:
+            ranks[order[i:j + 1]] = np.arange(i + 1, j + 2).mean()
+        i = j + 1
     r_pos = ranks[: len(pos)].sum()
     return float((r_pos - len(pos) * (len(pos) + 1) / 2) / (len(pos) * len(neg)))
 

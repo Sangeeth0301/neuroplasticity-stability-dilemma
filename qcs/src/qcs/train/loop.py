@@ -85,6 +85,7 @@ def run_continual(
     cfg: Config,
     log: RunLogger,
     arm: str,
+    kind: str | None = None,
     eval_every: int = 1,
     eval_past: int = 6,
     eval_probes: int = 3,
@@ -96,7 +97,14 @@ def run_continual(
     rng = np.random.default_rng(seed)
     tasks = stream.tasks()
     T = len(tasks)
-    lr = cfg.train.lr if arm.startswith("quantum") else cfg.train.lr_classical
+    # `kind` is the model family and MUST be passed explicitly. Deriving it from the
+    # arm label silently mis-trained every ablation run: a label like "abl_no_anchor_s7"
+    # parsed to "abl", so a quantum circuit was trained at the classical learning rate
+    # and the whole ablation table was invalid.
+    kind = kind or arm.split("_")[0]
+    is_quantum = kind == "quantum"
+    lr = cfg.train.lr_by_arm.get(
+        kind, cfg.train.lr if is_quantum else cfg.train.lr_classical)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
 
     buffer = ReservoirBuffer(cfg.train.replay_capacity, cfg.encode.feature_dim, seed)
@@ -146,7 +154,7 @@ def run_continual(
 
         if fired or (t % fisher_every == 0):
             fdiag = (qfim_diagonal(model, probe_X, max_examples=8, n_sample=96)
-                     if arm.startswith("quantum") else _classical_fisher(model, probe_X, probe_y))
+                     if is_quantum else _classical_fisher(model, probe_X, probe_y))
             anchor.checkpoint(model, fdiag)
 
         # ---- evaluation: current task, plus a sample of every past task -------
@@ -164,8 +172,7 @@ def run_continual(
             # unchanged, while the loop gets several times faster.
             if t % fim_log_every == 0:
                 last_tr_f = (fim_trace(model, probe_X, probe_y, max_examples=16)
-                             if arm.startswith("quantum")
-                             else _classical_fim_trace(model, probe_X, probe_y))
+                             if is_quantum else _classical_fim_trace(model, probe_X, probe_y))
             tr_f = last_tr_f
             log.log(task_id=t, arm=arm, phase="phase6", acc=float(A[t, t]),
                     loss=float(loss.detach()) if getattr(model, "trainable", True) else 0.0,

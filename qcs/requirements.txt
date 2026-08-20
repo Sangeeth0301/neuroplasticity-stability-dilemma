@@ -1,0 +1,45 @@
+# Dual-Manifold ContextSync — runtime requirements
+#
+#   python -m pip install -r requirements.txt
+#   python -m pip install -e .          # then install the package itself
+#
+# Versions are lower bounds pinned to what this repository was actually built and
+# verified against (Python 3.14, Windows 11). The exact resolved versions of every run
+# are recorded in runs/<run_id>/env.json, which is what a reproduction should match.
+
+# --- core numerics -----------------------------------------------------------
+numpy>=2.4.0
+scipy>=1.17.0
+pandas>=2.3.3
+pyarrow>=24.0.0
+matplotlib>=3.10.8
+
+# --- configuration, IO, graphs ----------------------------------------------
+pyyaml>=6.0.3
+networkx>=3.6.1
+tqdm>=4.67.1
+
+# --- classical ML: frozen encoder, projection training, the classical arms ---
+torch>=2.10.0                 # CPU build is sufficient; nothing here needs a GPU
+sentence-transformers>=5.2.3  # frozen MiniLM encoder (never fine-tuned)
+transformers>=4.44.0          # tokenizer for exact token accounting (Phase 7)
+scikit-learn>=1.8.0
+
+# --- retrieval ---------------------------------------------------------------
+faiss-cpu>=1.15.0             # candidate prefilter; exact inner product at this scale
+
+# --- quantum -----------------------------------------------------------------
+# The simulator used in training is our own batched statevector code in
+# src/qcs/quantum/ (torch-based, differentiable). PennyLane is required because
+# tests/test_quantum.py cross-checks our simulator against it — an independent
+# implementation is what makes the physics verifiable rather than self-consistent.
+pennylane>=0.44.0
+qiskit>=2.3.0                 # optional: hardware-parity path (Phase 9)
+tensorcircuit-ng>=1.9.1       # optional: cross-check against the reference paper's stack
+
+# --- figures -----------------------------------------------------------------
+umap-learn>=0.5.12            # optional: embedding-geometry figure V05
+
+# --- development -------------------------------------------------------------
+pytest>=9.1.1
+ruff>=0.6.0

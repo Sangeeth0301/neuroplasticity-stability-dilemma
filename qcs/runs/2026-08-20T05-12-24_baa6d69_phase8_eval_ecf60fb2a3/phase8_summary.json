@@ -1,0 +1,414 @@
+{
+  "seeds": [
+    7,
+    17,
+    27
+  ],
+  "n_tasks": 120,
+  "headline": {
+    "quantum": {
+      "rank1": [
+        0.9277777777777777,
+        0.03815444032969722
+      ],
+      "mrr": [
+        0.9588460998877665,
+        0.022469051738692184
+      ],
+      "auc": [
+        0.9980724907808242,
+        0.0011604608935657855
+      ],
+      "stale_above_current": [
+        0.015220700152207,
+        0.007761064708664817
+      ]
+    },
+    "linear": {
+      "rank1": [
+        0.9791666666666666,
+        0.0019641855032959585
+      ],
+      "mrr": [
+        0.9895061728395061,
+        0.0009323337942588014
+      ],
+      "auc": [
+        0.9996619635508526,
+        2.7496012542442483e-05
+      ],
+      "stale_above_current": [
+        0.0,
+        0.0
+      ]
+    },
+    "mlp": {
+      "rank1": [
+        0.9962962962962963,
+        0.0023606571822188736
+      ],
+      "mrr": [
+        0.9981481481481481,
+        0.0011803285911094366
+      ],
+      "auc": [
+        0.9999412110523221,
+        3.747074892410588e-05
+      ],
+      "stale_above_current": [
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "ablations": {
+    "full_system": 0.09101456438297559,
+    "no_anchor (\u03bb_\u03a9=0)": 0.08973647734604175,
+    "no_replay": 0.09268292732544078,
+    "no_trust_region": 0.09101456438297559,
+    "global observable": 0.19126023215749868,
+    "no salience block": 0.09103331378312575,
+    "no graph block": 0.06839502587980392,
+    "no \u03c1 block at all": 0.04499672010362522
+  },
+  "noise": {
+    "0.0": {
+      "recall@1": 0.85,
+      "recall@3": 0.95,
+      "recall@5": 0.975,
+      "recall@10": 1.0,
+      "mrr": 0.9081250000000001,
+      "auc": 0.994047619047619,
+      "rank1": 0.85,
+      "stale_above_current": NaN,
+      "n_probes": 40.0,
+      "n_stale_cases": 0.0
+    },
+    "0.0001": {
+      "recall@1": 0.85,
+      "recall@3": 0.95,
+      "recall@5": 0.975,
+      "recall@10": 1.0,
+      "mrr": 0.9081250000000001,
+      "auc": 0.994047619047619,
+      "rank1": 0.85,
+      "stale_above_current": NaN,
+      "n_probes": 40.0,
+      "n_stale_cases": 0.0
+    },
+    "0.0005": {
+      "recall@1": 0.85,
+      "recall@3": 0.95,
+      "recall@5": 0.975,
+      "recall@10": 1.0,
+      "mrr": 0.9036111111111111,
+      "auc": 0.9932539682539684,
+      "rank1": 0.85,
+      "stale_above_current": NaN,
+      "n_probes": 40.0,
+      "n_stale_cases": 0.0
+    },
+    "0.001": {
+      "recall@1": 0.85,
+      "recall@3": 0.95,
+      "recall@5": 0.975,
+      "recall@10": 1.0,
+      "mrr": 0.9036111111111111,
+      "auc": 0.9932539682539684,
+      "rank1": 0.85,
+      "stale_above_current": NaN,
+      "n_probes": 40.0,
+      "n_stale_cases": 0.0
+    },
+    "0.005": {
+      "recall@1": 0.825,
+      "recall@3": 0.925,
+      "recall@5": 0.975,
+      "recall@10": 0.975,
+      "mrr": 0.8869230769230768,
+      "auc": 0.9904761904761905,
+      "rank1": 0.825,
+      "stale_above_current": NaN,
+      "n_probes": 40.0,
+      "n_stale_cases": 0.0
+    }
+  },
+  "test_split": {
+    "quantum": {
+      "recall@1": 0.8555555555555555,
+      "recall@3": 0.9777777777777777,
+      "recall@5": 0.9944444444444445,
+      "recall@10": 1.0,
+      "mrr": 0.9189616402116403,
+      "auc": 0.9963858575837744,
+      "rank1": 0.8555555555555555,
+      "stale_above_current": 0.034782608695652174,
+      "n_probes": 360.0,
+      "n_stale_cases": 115.0
+    },
+    "linear": {
+      "recall@1": 0.9527777777777777,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 0.975,
+      "auc": 0.9991181657848324,
+      "rank1": 0.9527777777777777,
+      "stale_above_current": 0.0,
+      "n_probes": 360.0,
+      "n_stale_cases": 115.0
+    },
+    "mlp": {
+      "recall@1": 0.9861111111111112,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 0.9925925925925927,
+      "auc": 0.9997354497354498,
+      "rank1": 0.9861111111111112,
+      "stale_above_current": 0.0,
+      "n_probes": 360.0,
+      "n_stale_cases": 115.0
+    },
+    "cosine": {
+      "recall@1": 0.8305555555555556,
+      "recall@3": 0.9944444444444445,
+      "recall@5": 1.0,
+      "recall@10": 1.0,
+      "mrr": 0.9095833333333333,
+      "auc": 0.9277466879394048,
+      "rank1": 0.8305555555555556,
+      "stale_above_current": 0.13043478260869565,
+      "n_probes": 360.0,
+      "n_stale_cases": 115.0
+    },
+    "recency": {
+      "recall@1": 0.027777777777777776,
+      "recall@3": 0.13055555555555556,
+      "recall@5": 0.20833333333333334,
+      "recall@10": 0.325,
+      "mrr": 0.1280504169213409,
+      "auc": 0.5300018608465398,
+      "rank1": 0.027777777777777776,
+      "stale_above_current": 0.4782608695652174,
+      "n_probes": 360.0,
+      "n_stale_cases": 115.0
+    }
+  },
+  "by_regime": {
+    "quantum": {
+      "single_owner": 0.9019444444444444,
+      "multi_owner": 0.9433333333333332,
+      "adversarial": 0.9116071428571428
+    },
+    "linear": {
+      "single_owner": 0.9736111111111112,
+      "multi_owner": 0.9833333333333333,
+      "adversarial": 0.9680555555555556
+    },
+    "mlp": {
+      "single_owner": 0.9875,
+      "multi_owner": 1.0,
+      "adversarial": 0.9902777777777778
+    }
+  },
+  "significance": {
+    "quantum \u2212 linear": {
+      "n_threads": 6,
+      "difference": -0.05603835978835969,
+      "ci_low": -0.06946494708994724,
+      "ci_high": -0.04283730158730159,
+      "p_value": 0.0,
+      "significant": true
+    },
+    "quantum \u2212 mlp": {
+      "n_threads": 6,
+      "difference": -0.07363095238095241,
+      "ci_low": -0.08597222222222234,
+      "ci_high": -0.059927248677248746,
+      "p_value": 0.0,
+      "significant": true
+    },
+    "linear \u2212 mlp": {
+      "n_threads": 6,
+      "difference": -0.017592592592592715,
+      "ci_low": -0.02314814814814814,
+      "ci_high": -0.01203703703703718,
+      "p_value": 0.0,
+      "significant": true
+    }
+  },
+  "failures": {
+    "quantum": {
+      "n_probes": 360,
+      "n_failures": 52,
+      "accuracy": 0.8555555555555556,
+      "counts": {
+        "ranking": 48,
+        "stale": 4
+      },
+      "examples": {
+        "ranking": [
+          {
+            "thread": "test-000",
+            "turn": 208
+          },
+          {
+            "thread": "test-000",
+            "turn": 290
+          },
+          {
+            "thread": "test-000",
+            "turn": 293
+          },
+          {
+            "thread": "test-000",
+            "turn": 397
+          },
+          {
+            "thread": "test-000",
+            "turn": 433
+          }
+        ],
+        "stale": [
+          {
+            "thread": "test-002",
+            "turn": 338
+          },
+          {
+            "thread": "test-002",
+            "turn": 548
+          },
+          {
+            "thread": "test-005",
+            "turn": 87
+          },
+          {
+            "thread": "test-005",
+            "turn": 132
+          }
+        ]
+      }
+    },
+    "linear": {
+      "n_probes": 360,
+      "n_failures": 17,
+      "accuracy": 0.9527777777777777,
+      "counts": {
+        "ranking": 17
+      },
+      "examples": {
+        "ranking": [
+          {
+            "thread": "test-000",
+            "turn": 300
+          },
+          {
+            "thread": "test-000",
+            "turn": 549
+          },
+          {
+            "thread": "test-000",
+            "turn": 557
+          },
+          {
+            "thread": "test-001",
+            "turn": 596
+          },
+          {
+            "thread": "test-002",
+            "turn": 540
+          }
+        ]
+      }
+    },
+    "mlp": {
+      "n_probes": 360,
+      "n_failures": 5,
+      "accuracy": 0.9861111111111112,
+      "counts": {
+        "ranking": 5
+      },
+      "examples": {
+        "ranking": [
+          {
+            "thread": "test-000",
+            "turn": 549
+          },
+          {
+            "thread": "test-000",
+            "turn": 557
+          },
+          {
+            "thread": "test-002",
+            "turn": 584
+          },
+          {
+            "thread": "test-003",
+            "turn": 565
+          },
+          {
+            "thread": "test-005",
+            "turn": 583
+          }
+        ]
+      }
+    },
+    "cosine": {
+      "n_probes": 360,
+      "n_failures": 61,
+      "accuracy": 0.8305555555555555,
+      "counts": {
+        "ranking": 47,
+        "stale": 14
+      },
+      "examples": {
+        "ranking": [
+          {
+            "thread": "test-000",
+            "turn": 248
+          },
+          {
+            "thread": "test-000",
+            "turn": 300
+          },
+          {
+            "thread": "test-000",
+            "turn": 302
+          },
+          {
+            "thread": "test-000",
+            "turn": 415
+          },
+          {
+            "thread": "test-000",
+            "turn": 505
+          }
+        ],
+        "stale": [
+          {
+            "thread": "test-002",
+            "turn": 120
+          },
+          {
+            "thread": "test-002",
+            "turn": 201
+          },
+          {
+            "thread": "test-002",
+            "turn": 350
+          },
+          {
+            "thread": "test-002",
+            "turn": 409
+          },
+          {
+            "thread": "test-002",
+            "turn": 567
+          }
+        ]
+      }
+    }
+  },
+  "minutes": 40.63129403591156
+}

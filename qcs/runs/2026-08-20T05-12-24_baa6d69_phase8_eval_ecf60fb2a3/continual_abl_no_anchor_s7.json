@@ -1,0 +1,11 @@
+{
+  "bwt": 0.03894752264022827,
+  "fwt": 0.0,
+  "plasticity_index": 1.826603889465332,
+  "final_average": 0.10605616122484207,
+  "clip_rate": 0.0,
+  "drift_events": 41,
+  "checkpoints": 44,
+  "buffer_tasks": 60,
+  "n_params": 1080
+}

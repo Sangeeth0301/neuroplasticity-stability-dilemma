@@ -35,11 +35,11 @@ buys plasticity and nothing else; stability comes from the architecture.
 | 2 | Ingest + encoding stack | ✅ done | unit-norm 1024-vectors for every triple | recall@20 **0.996** held-out, block shares on target |
 | 3 | Memory manifold ℳ | ✅ done | append-only proven, ANN recall ≥ 0.95 @ M=256 | recall@256 **1.000**, 10 append-only tests |
 | 4 | Quantum core | ✅ done | gradient agreement < 1e-6, depth chosen by evidence | agreement **8.6e-9**, PennyLane cross-check passes |
-| 5 | Baselines + harness | ⬜ next | B0–B3 run end to end | — |
-| 6 | Continual training | ⬜ | 500-task run, both arms, 3 seeds | — |
-| 7 | Assembly + LLM | ⬜ | budget never exceeded, saturation curves | — |
-| 8 | Evaluation | ⬜ | every claim has a figure | — |
-| 9 | Hardening | ⬜ | clean-clone reproduction | — |
+| 5 | Baselines + tuned twin | ✅ done | every arm at its own best lr | lr sweep changed the linear arm 0.063 → 0.965 MRR |
+| 6 | Continual training | ✅ done (120 tasks, 1 seed) | full metric suite logged, both arms | quantum Tr(F) rises, classical collapses |
+| 7 | Assembly + reader | ✅ done | budget never exceeded, curves produced | **0** unlabelled stale facts served |
+| 8 | Evaluation | ✅ done | every claim has a figure | 3 seeds · 7 ablations · noise sweep · sealed test split |
+| 9 | Hardening | ⬜ not started (stopped here on request) | clean-clone reproduction | — |
 
 ---
 
@@ -406,15 +406,236 @@ python -m pytest tests/test_quantum.py -q
 
 ---
 
-## Phase 5 — Baselines, classical twin, and the training harness ⬜ next
+## Phase 5 — Baselines and the tuned classical twin ✅
 
-**Objective.** Know exactly what must be beaten, with a parameter-matched classical
-scorer built with equal care.
+**Objective.** Know exactly what must be beaten, with classical arms built with equal care.
 
-**Planned work.** `classical/mlp_scorer.py` (identical interface, |θ| matched to 1,080) ·
-`cosine_scorer.py` · `random_scorer.py` · `oracle_scorer.py` · the metric suite
-(Recall@B, MRR, stale-fact rate, persona bleed) · a single `score(X) → r` interface every
-arm implements · figures V21 onwards.
+**The arms** (all implement the identical `score(X) → r` interface):
+
+| arm | what it is | |θ| |
+|---|---|---|
+| `quantum` | the QRE, depth 8 | 1,080 |
+| `linear` | **parameter-matched twin**, 1024→1 | 1,025 |
+| `mlp` | capacity reference, 1024→64→1 | 65,665 |
+| `cosine` | B1, no learning | 0 |
+| `recency` | B0 truncation floor | 0 |
+| `random` / `oracle` | chance floor / ceiling | 0 |
+
+A classical net consuming a 1024-dim input needs ≥1024 weights for one linear layer, so
+the honest parameter-matched twin is the *linear* scorer. The wider MLP is reported too,
+clearly labelled — hiding it would produce exactly the handicapped baseline that makes
+quantum results unconvincing.
+
+**Finding — the first comparison was unfair, and measuring it proved it.** The reference
+paper's experiment 1 uses lr 0.03 for the QNN and 1e-3 for the MLP. Running that way, the
+linear arm scored MRR **0.063**. `scripts/tune_lr.py` trains each arm on a task prefix and
+scores it on held-out later tasks:
+
+| arm | 0.001 | 0.005 | 0.02 | 0.05 | 0.1 | best |
+|---|---|---|---|---|---|---|
+| quantum | 0.29 | 0.44 | **0.62** | 0.51 | 0.30 | 0.02 |
+| linear | 0.03 | 0.04 | 0.72 | 0.94 | **0.97** | 0.1 |
+| mlp | 0.04 | 0.92 | **0.97** | 0.97 | 0.86 | 0.02 |
+
+At its own best learning rate the linear arm goes **0.063 → 0.965**. Every comparison
+after this point uses `configs/tuned.yaml`, and any result reported at mismatched learning
+rates should be treated as invalid.
+
+---
+
+## Phase 6 — Continual training ✅ *(120 tasks, 1 seed — an interim run)*
+
+**What was built:** `train/replay.py` (reservoir, uniform over history) ·
+`train/anchor.py` (QFIM-weighted anchor, trust region, PSI drift detector) ·
+`train/loop.py` (the only module that updates parameters) · `viz/training_viz.py`.
+
+**Results, 120 tasks × 6 probes, all arms at their tuned learning rate**
+
+| arm | rank-1 | MRR | AUC | stale-above ↓ | BWT | Tr(F) trend | wall clock |
+|---|---|---|---|---|---|---|---|
+| cosine (B1) | 0.894 | 0.943 | 0.932 | 0.078 | — | — | — |
+| recency (B0) | 0.025 | 0.124 | 0.532 | 0.521 | — | — | — |
+| **quantum** | 0.911 | 0.950 | 0.998 | **0.005** | +0.028 | **↑ 2.5×** | 406 s |
+| **linear** (matched) | **0.981** | **0.990** | 1.000 | **0.000** | +0.046 | **↓ 0.30×** | 3 s |
+| mlp (65k) | 0.999 | 0.999 | 1.000 | 0.000 | +0.015 | **↓ 0.06×** | 20 s |
+| oracle | 1.000 | 1.000 | 1.000 | 0.000 | — | — | — |
+
+**Read this honestly, in three parts.**
+
+1. **On ranking quality the quantum arm loses.** The parameter-matched linear scorer beats
+   it (0.981 vs 0.911 rank-1) at **135× less wall clock**. At this scale and horizon there
+   is no quantum advantage in accuracy, and the blueprint never claimed one.
+2. **On the metric the reference paper is actually about, the predicted signature is
+   already visible at 120 tasks.** Normalised `Tr(F)` — effective learning capacity — rises
+   to ≈2.5× for the quantum arm and holds, while the linear arm decays to 0.30× and the MLP
+   collapses to **0.06×** after task 80. Gradient norms tell the same story (quantum 1.2×,
+   classical 0.2–0.35×), and the unwrapped parameter norm of the linear arm grows to 5×
+   and is still climbing while the quantum arm plateaus — the compact-manifold mechanism,
+   drawn.
+3. **What that does and does not mean.** Losing `Tr(F)` is losing the *ability to keep
+   learning*, not current accuracy. Both classical arms are still near ceiling because 120
+   tasks is far too short for capacity loss to show up as error — the paper needed
+   1,000–3,000 tasks. So the headline plasticity claim is **not yet tested**; what we have
+   is an early indicator pointing the way the paper predicts. The long run is Phase 8 work,
+   and the quantum arm's 3.4 s/task is the binding constraint on it.
+
+**Also validated:** all three learned arms drive the stale-fact error from cosine's 0.078
+to ≈0, which is the ρ-block architecture paying off — and that result is independent of
+whether the scorer is quantum.
+
+---
+
+## Phase 7 — Budgeted assembly and the frozen reader ✅
+
+**What was built:** `assemble/budget.py` (exact tokenizer counts, reserved sub-budgets) ·
+`assemble/knapsack.py` (greedy submodular selection, (1−1/e) guarantee, plus an explicit
+top-k baseline to beat) · `assemble/pipeline.py` (supersession filter, provenance-tagged
+template, `ExtractiveReader`) · `viz/assemble_viz.py`.
+
+**Answer accuracy vs token budget** (80 probes, reserves scaled with B):
+
+| arm | B=128 | 256 | 512 | 1024 | 2048 |
+|---|---|---|---|---|---|
+| quantum | 0.975 | 0.975 | 0.975 | 0.975 | 0.975 |
+| linear | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| mlp | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| cosine | 0.938 | 0.988 | 1.000 | 1.000 | 1.000 |
+| recency | 0.925 | 0.988 | 1.000 | 1.000 | 1.000 |
+
+**Unlabelled stale facts served: 0 for every arm.** The supersession rule is a hard filter
+— a superseded statement is either dropped or shown explicitly as `OUTDATED:` beside its
+`CURRENT:` replacement — and the reader is tested to never answer from an OUTDATED line.
+
+The learned arms reach their ceiling at **B=128** where the unlearned baselines need
+**B=512** — a 4× budget reduction for the same answer quality, which is the "constant
+context length independent of thread length" claim in its weakest measurable form.
+
+**The honest limitation.** There is no LLM API wired in, so the frozen generator is
+`ExtractiveReader`, which answers only if the required fact reached the prompt. That
+measures precisely what this architecture is responsible for, and it cannot flatter the
+system — but it also **cannot degrade when given too much context**, so the saturation
+*turnover* (V44) is not observable with it. Demonstrating attention dilution needs a real
+frozen LLM; until then, Phase 7 shows the budget is respected and selection is efficient,
+not that saturation was defeated.
+
+---
+
+## Phase 8 — Full evaluation ✅
+
+**Objective.** Produce results that survive an adversarial reader — including the ones
+that did not go our way.
+
+**What was built:** `quantum/noise.py` (depolarising noise by trajectory sampling) ·
+`eval/significance.py` (paired bootstrap over **threads**, not probes) ·
+`eval/failure_analysis.py` (retrieval / ranking / stale / eviction taxonomy) ·
+`viz/eval_viz.py` (V35–V40, V46) · `scripts/run_eval.py`. Total runtime 40.6 min.
+
+### Headline — 3 seeds (7, 17, 27), 120 tasks, each arm at its tuned learning rate
+
+| arm | rank-1 | MRR | AUC | stale-above ↓ | |θ| |
+|---|---|---|---|---|---|
+| quantum | 0.928 ± 0.038 | 0.959 ± 0.022 | 0.998 ± 0.001 | 0.015 ± 0.008 | 1,080 |
+| **linear** (matched) | **0.979 ± 0.002** | **0.990 ± 0.001** | 1.000 | **0.000** | 1,025 |
+| mlp (capacity ref.) | 0.996 ± 0.002 | 0.998 ± 0.001 | 1.000 | 0.000 | 65,665 |
+
+The quantum arm's seed-to-seed spread is **19× larger** than the linear arm's
+(±0.038 vs ±0.002) — a stability cost, not just an accuracy one.
+
+### Sealed test split — opened once, here, for the first time
+
+| arm | MRR | rank-1 | AUC | stale-above ↓ |
+|---|---|---|---|---|
+| quantum | 0.919 | 0.856 | 0.996 | 0.035 |
+| linear | 0.975 | 0.953 | 0.999 | 0.000 |
+| mlp | 0.993 | 0.986 | 1.000 | 0.000 |
+| cosine (B1) | 0.910 | 0.831 | 0.928 | **0.130** |
+| recency (B0) | 0.128 | 0.028 | 0.530 | 0.478 |
+
+Held-out numbers track the training-stream numbers closely (quantum 0.959 → 0.919), so the
+result is not an artefact of evaluating where we trained. Per regime, every arm is within
+±0.04 across single-owner / multi-owner / adversarial — no persona-bleed collapse.
+
+### Significance — paired bootstrap over threads (5,000 resamples)
+
+| comparison | Δ MRR | 95% CI | p | verdict |
+|---|---|---|---|---|
+| quantum − linear | −0.056 | [−0.070, −0.043] | 0.000 | **significant** |
+| quantum − mlp | −0.074 | [−0.086, −0.060] | 0.000 | significant |
+| linear − mlp | −0.018 | [−0.023, −0.012] | 0.000 | significant |
+
+**The quantum arm is significantly worse than its parameter-matched classical twin on
+ranking quality.** That is the honest headline of Phase 8, and it is reported as the
+result rather than buried: the blueprint's claim 4 said this comparison had to be
+falsifiable, and it falsified in the classical arm's favour at this scale and horizon.
+
+### Ablations — quantum arm, 60 tasks, each variant retrained (V35)
+
+| variant | MRR | Δ |
+|---|---|---|
+| **no ρ block at all** | 0.572 | **−0.324** |
+| no replay | 0.733 | −0.162 |
+| no graph/supersession block | 0.765 | −0.130 |
+| global observable ⟨Z⊗…⊗Z⟩ | 0.804 | −0.092 |
+| no trust region | 0.896 | ±0.000 |
+| no salience block | 0.897 | +0.001 |
+| no anchor (λ_Ω = 0) | 0.917 | **+0.022** |
+| *full system* | *0.896* | — |
+
+Four things this settles:
+
+1. **The ρ block is the architecture.** Removing it costs 32 MRR points — more than every
+   other component combined. The relational features (recency, supersession, graph) are
+   what the scorer is actually using, exactly as the Phase 3 headroom analysis predicted.
+2. **Replay earns its place** (−0.162), and the supersession/graph features earn theirs
+   (−0.130).
+3. **The local readout is validated on task performance**, not just on trainability
+   theory: switching to the global observable costs 0.092.
+4. **The QFIM anchor currently *hurts* slightly** (+0.022 when removed). At 60 tasks there
+   is nothing to protect yet, so a Fisher-weighted penalty is pure drag. Its value can only
+   appear over horizons long enough for forgetting to occur — which this run does not
+   reach. Reported as-is rather than tuned away.
+
+*(This table is the corrected one. The first ablation run was invalid: tagging runs
+`abl_*` broke the arm-name parsing in `run_continual`, so every ablation trained the
+quantum circuit at the **classical** learning rate. `kind` is now an explicit argument and
+the fragile string parsing is gone.)*
+
+### Noise robustness (V38) — trained circuit, depolarising noise by trajectory sampling
+
+| p per gate | 0 | 1e-4 | 5e-4 | 1e-3 | 5e-3 |
+|---|---|---|---|---|---|
+| MRR | 0.908 | 0.908 | 0.904 | 0.904 | 0.887 |
+| rank-1 | 0.850 | 0.850 | 0.850 | 0.850 | 0.825 |
+
+Ranking is essentially unchanged through **p = 1e-3**, an order of magnitude beyond the
+5e-4 the reference paper reports, and loses only 2 points at 5e-3. This is the one
+quantum-side claim that came through cleanly.
+
+### Failure taxonomy (V39, test split)
+
+| arm | accuracy | ranking | stale | retrieval | eviction |
+|---|---|---|---|---|---|
+| mlp | 0.986 | 5 | 0 | 0 | 0 |
+| linear | 0.953 | 17 | 0 | 0 | 0 |
+| quantum | 0.856 | 48 | 4 | 0 | 0 |
+| cosine | 0.831 | 47 | **14** | 0 | 0 |
+
+**Zero retrieval failures and zero evictions for every arm** — ℳ and the knapsack are not
+the bottleneck; every remaining loss is a ranking decision. Cosine's losses are
+disproportionately stale-fact errors (14 of 61), which the learned arms almost eliminate.
+
+### What Phase 8 establishes, stated plainly
+
+- **Architecture claims: supported.** Append-only memory + prefilter + budgeted assembly
+  produce zero retrieval and zero eviction failures; the ρ block is worth 0.32 MRR; stale
+  facts drop from 0.130 (cosine) to 0.000–0.035; no unlabelled stale fact ever reaches a
+  prompt.
+- **Quantum ranking advantage: refuted at this scale.** Significantly worse than a
+  1,025-parameter linear model, with 19× the seed variance and ~30× the wall clock.
+- **Quantum plasticity advantage: still untested.** The Phase 6 Tr(F) divergence is a real
+  early indicator, but 120 tasks is two orders of magnitude short of where the reference
+  paper's effect appears. Nothing here confirms or refutes it.
+- **Noise robustness: supported.**
 
 ---
 
@@ -422,6 +643,9 @@ arm implements · figures V21 onwards.
 
 | item | status |
 |---|---|
+| Anchor (λ_Ω) is a net negative at 60–120 tasks | measured in Phase 8; expected to invert only at long horizons — keep, but do not claim value for it yet |
+| Quantum arm is ~30× slower per task | the binding constraint on running the 1,000+ task experiment that would actually test plasticity |
+| `ExtractiveReader` cannot show attention dilution | a real frozen LLM is needed before any saturation-turnover claim |
 | Embedding dim is 384 (MiniLM), not 768 — projection is 384→256 | resolved; recorded in `configs/base.yaml` |
 | Block-dominance at S6 | fix designed (per-block norm targets), to be verified by V13 in Phase 2 |
 | Light-cone floor L ≥ 6 for N=10 | enforced in `Config.validate()` |

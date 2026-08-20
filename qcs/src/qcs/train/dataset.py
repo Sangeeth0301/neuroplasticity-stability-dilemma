@@ -191,14 +191,19 @@ class ScoringDataset:
              ) -> "ScoringDataset":
         path = Path(path or paths.DATA_PROCESSED / f"scoring_{split}.npz")
         blob = np.load(path, allow_pickle=True)
+        # Hoist every array out of the NpzFile FIRST. Indexing `blob["X"][i]` inside a
+        # loop re-reads and re-decompresses the whole 94 MB member on every iteration —
+        # 720 probes turned a 2-second load into minutes of silent thrashing.
+        X, y = blob["X"], blob["y"]
+        stale, tokens = blob["stale"], blob["tokens"]
+        su_ids, kinds = blob["su_ids"], blob["kinds"]
+        thread, turn = blob["thread"], blob["turn"]
         obj = cls(cfg, split)
-        for i in range(len(blob["y"])):
+        for i in range(len(y)):
             obj.examples.append(ProbeExample(
-                thread_id=str(blob["thread"][i]), probe_turn=int(blob["turn"][i]),
-                su_ids=list(blob["su_ids"][i]),
-                X=blob["X"][i].astype(np.float32),   # stored fp16, used fp32
-                y=blob["y"][i],
-                is_stale=blob["stale"][i], tokens=blob["tokens"][i],
-                kinds=list(blob["kinds"][i]),
+                thread_id=str(thread[i]), probe_turn=int(turn[i]),
+                su_ids=list(su_ids[i]),
+                X=X[i].astype(np.float32),          # stored fp16, used fp32
+                y=y[i], is_stale=stale[i], tokens=tokens[i], kinds=list(kinds[i]),
             ))
         return obj

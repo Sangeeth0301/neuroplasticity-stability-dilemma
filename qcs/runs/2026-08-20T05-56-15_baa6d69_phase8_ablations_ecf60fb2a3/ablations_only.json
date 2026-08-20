@@ -1,0 +1,11 @@
+{
+  "full_system": 0.8956,
+  "no ρ block at all": 0.5717,
+  "no_replay": 0.7333,
+  "no graph block": 0.7652,
+  "global observable": 0.8038,
+  "no_trust_region": 0.8956,
+  "no salience block": 0.8968,
+  "no_anchor (λ_Ω=0)": 0.9173,
+  "note": "quantum arm, 60 tasks, seed 7, each run at the tuned quantum lr"
+}

@@ -39,8 +39,9 @@ class BaseScorer(nn.Module):
         """No-op: Euclidean parameters have nothing to wrap. That asymmetry IS the
         experiment — the classical arm's weights are free to grow without bound."""
 
+    @torch.no_grad()
     def theta_norm(self, wrapped: bool = True) -> float:
-        return float(torch.sqrt(sum((p**2).sum() for p in self.parameters())))
+        return float(torch.sqrt(sum((p.detach() ** 2).sum() for p in self.parameters())))
 
     def grad_norm(self) -> float:
         return float(torch.sqrt(sum((p.grad**2).sum() for p in self.parameters()
@@ -99,7 +100,9 @@ class CosineScorer(BaseScorer):
 
     def forward(self, x) -> torch.Tensor:
         x = self._t(x)
-        return torch.sigmoid(20.0 * x[:, self.block].sum(dim=1))
+        # gain 20 saturated sigmoid to exactly 1.0 for most candidates, producing
+        # ties that make AUC meaningless; 6 keeps the ordering informative.
+        return torch.sigmoid(6.0 * x[:, self.block].sum(dim=1))
 
 
 class RecencyScorer(BaseScorer):
@@ -115,7 +118,7 @@ class RecencyScorer(BaseScorer):
         self.idx = 3 * feature_dim // 4 + 65
 
     def forward(self, x) -> torch.Tensor:
-        return torch.sigmoid(20.0 * self._t(x)[:, self.idx])
+        return torch.sigmoid(6.0 * self._t(x)[:, self.idx])
 
 
 class RandomScorer(BaseScorer):
