@@ -1,33 +1,86 @@
-# Dual-Manifold ContextSync (V2)
+# Dual-Manifold ContextSync
 
-## Stability-Plasticity in Quantum-Classical Hybrid LLMs
+**A quantum–classical hybrid architecture for the stability–plasticity dilemma in long,
+multi-user LLM chat threads.**
 
-This repository contains the architecture and codebase for the **Dual-Manifold ContextSync Architecture**, a hybrid quantum-classical system designed to solve the Stability-Plasticity dilemma in Large Language Models (LLMs).
+Stability and plasticity are normally carried by the same parameter vector, so they compete
+for the same coordinates. This project puts them on two different mathematical objects — an
+**append-only classical memory** that no gradient can erase, and a **10-qubit variational
+circuit** whose parameters live on a compact manifold where learning capacity provably
+cannot decay. The language model is frozen throughout; no gradient path to it exists.
 
-### 🚀 Getting Started
+> Everything lives in [`qcs/`](qcs/). Start with **[`qcs/README.md`](qcs/README.md)**.
 
-**IMPORTANT:** Do NOT use any legacy V1 architecture files or references. The complete master blueprint for this project is located in:
-👉 `Q_ContextSync_Build_Atlas.html`
+---
 
-Your friend should open this HTML file in their browser and read it from top to bottom. It contains the exact mathematical thesis, the 10-qubit Quantum Relevance Engine design, the classical Append-Only Stability Manifold, and the precise 10-phase execution plan.
+## Result in one table
 
-### 📦 Prerequisites & Setup
+Three seeds · 120 sequential tasks · every arm at its own tuned learning rate.
 
-A `requirements.txt` has been generated for you with all the necessary classical and quantum libraries (PennyLane, Qiskit, TensorCircuit, PyTorch, etc.). 
+| Arm | \|θ\| | rank-1 | MRR | stale-above ↓ | Tr(F) after 120 tasks |
+|---|---|---|---|---|---|
+| quantum (QRE) | 1,080 | 0.928 ± 0.038 | 0.959 ± 0.022 | 0.015 | **4.75× — capacity grew** |
+| **linear** (parameter-matched) | 1,025 | **0.979 ± 0.002** | **0.990 ± 0.001** | 0.000 | 0.28× — capacity lost |
+| mlp (capacity reference) | 65,665 | 0.996 ± 0.002 | 0.998 ± 0.001 | 0.000 | 0.06× — capacity collapsed |
+| cosine (no learning) | 0 | 0.894 | 0.943 | 0.078 | — |
 
-To install everything in your environment:
-```bash
-pip install -r requirements.txt
+Reported plainly, both ways:
+
+- **The quantum arm loses on ranking quality.** Δ −0.056 MRR against its parameter-matched
+  classical twin, 95% CI [−0.070, −0.043], p = 0.000 by paired bootstrap over threads, at
+  roughly 135× the compute. The architecture was built so this comparison could falsify,
+  and it did.
+- **On effective learning capacity — the property the reference paper is about — the
+  predicted signature appears.** Tr(F) rises for the compact-manifold arm and collapses for
+  both Euclidean arms. That is an early indicator, not a proof: 120 tasks is two orders of
+  magnitude short of the horizon at which the published effect emerges.
+
+Supported architecture claims: zero retrieval failures and zero evictions on the sealed
+test split, stale-fact errors from 0.130 down to 0.000–0.035, no unlabelled stale fact ever
+reaching a prompt, and ranking unchanged under depolarising noise to p = 1e-3.
+
+---
+
+## Repository map
+
+```
+qcs/
+├── README.md            full front door: layout, results, reproduction commands
+├── MASTER_DOC.md        the build record — every phase, what it measured, what changed
+├── deliverables/        report (docx) · phases document (docx) · deck (pptx) · 2 HTML documents
+├── figures/             architecture · circuit · results · per-phase evidence
+├── phases/              00–09, each with objective, exit criterion and measured result
+├── src/qcs/             the system itself — 9 sub-packages
+├── scripts/             16 CLI entry points + build_docs/ document generators
+├── tests/               88 tests
+├── configs/             base.yaml + tuned.yaml — every tunable number in the project
+├── data/raw/            the generated corpus (deterministic from a seed)
+└── runs/                one canonical run per phase: config, environment, metrics, figures
 ```
 
-### 🗺️ Project Phases
+## Quick start
 
-As detailed in the Build Atlas, the project must be executed in strict order:
-1. **Phase 00:** Foundation (Environment & CI)
-2. **Phase 01:** Ground-Truth Dataset Assembly
-3. **Phase 02:** Classical Stability Manifold (SQLite + FAISS)
-4. **Phase 03:** The 10-Qubit VQC Relevance Engine (PennyLane)
-5. **Phase 04-06:** Model Training & QFIM Anchoring
-6. **Phase 07-10:** Evaluation & Integration
+```bash
+cd qcs
+python -m pip install -r requirements.txt
+python -m pip install -e .
+python -m pytest
+```
 
-Good luck building!
+Full reproduction pipeline, phase by phase: see [`qcs/README.md`](qcs/README.md).
+
+---
+
+## Not in this repository
+
+Three things are deliberately excluded by `.gitignore` and stay on the author's machine:
+
+- `qcs/references/` — third-party papers, not ours to redistribute.
+- `qcs/data/interim/`, `qcs/data/processed/` — caches and frozen artefacts, regenerated by
+  `fit_encoder.py` and `train_continual.py --rebuild`.
+- `qcs/archive/` — superseded V1 material, kept locally for provenance.
+
+## Reference
+
+Yu-Qin Chen and Shi-Xin Zhang, *Intrinsic Preservation of Plasticity in Continual Quantum
+Learning*, PRX Quantum **7**, 033003 (2026).
