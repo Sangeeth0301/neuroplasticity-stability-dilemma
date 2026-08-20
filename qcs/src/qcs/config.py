@@ -78,6 +78,7 @@ class TrainConfig:
     batch_size: int = 32
     lr: float = 0.03
     lr_classical: float = 1e-3
+    lr_by_arm: dict[str, float] = field(default_factory=dict)   # set by scripts/tune_lr.py
     replay_capacity: int = 8000
     replay_ratio: float = 0.5
     lambda_omega: float = 1e-2

@@ -1,0 +1,5 @@
+train:
+  lr_by_arm:
+    quantum: 0.02
+    linear: 0.1
+    mlp: 0.02

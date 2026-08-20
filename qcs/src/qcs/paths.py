@@ -13,11 +13,12 @@ DATA_RAW = DATA / "raw"
 DATA_INTERIM = DATA / "interim"
 DATA_PROCESSED = DATA / "processed"
 RUNS = ROOT / "runs"
-FIGS = ROOT / "figs"
-DOCS = ROOT / "docs"
+FIGS = ROOT / "figures"
+DELIVERABLES = ROOT / "deliverables"
+REFERENCES = ROOT / "references"
 
 
 def ensure_dirs() -> None:
     """Create the directory skeleton. Safe to call repeatedly."""
-    for p in (DATA_RAW, DATA_INTERIM, DATA_PROCESSED, RUNS, FIGS, DOCS):
+    for p in (DATA_RAW, DATA_INTERIM, DATA_PROCESSED, RUNS, FIGS, DELIVERABLES):
         p.mkdir(parents=True, exist_ok=True)
