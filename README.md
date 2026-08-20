@@ -1,5 +1,8 @@
 # Dual-Manifold ContextSync
 
+> **🚀 Latest Update: Complete V2 Architecture Release**
+> The repository has been entirely rewritten into a modular, 10-phase pipeline. The legacy V1 code has been securely archived, and the new robust structure features a strict SQLite Memory Manifold coupled with a 10-qubit Quantum Relevance Engine.
+
 **A quantum–classical hybrid architecture for the stability–plasticity dilemma in long,
 multi-user LLM chat threads.**
 
