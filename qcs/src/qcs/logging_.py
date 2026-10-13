@@ -60,9 +60,11 @@ class RunLogger:
     run_dir: Path
 
     @classmethod
-    def create(cls, cfg, tag: str) -> "RunLogger":
+    def create(cls, cfg, tag: str, root: Path | None = None) -> "RunLogger":
+        """Make a run directory. `root` defaults to runs/; experiment scripts that only need
+        throw-away logs pass runs/scratch (git-ignored) so runs/ stays a clean record."""
         stamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-        run_dir = paths.RUNS / f"{stamp}_{git_hash()}_{tag}_{cfg.hash()}"
+        run_dir = (root or paths.RUNS) / f"{stamp}_{git_hash()}_{tag}_{cfg.hash()}"
         (run_dir / "figs").mkdir(parents=True, exist_ok=True)
         (run_dir / "checkpoints").mkdir(parents=True, exist_ok=True)
         cfg.save(run_dir / "config.yaml")

@@ -93,6 +93,7 @@ def run_continual(
     fim_log_every: int = 5,
     seed: int = 0,
     verbose: bool = True,
+    on_task_end=None,
 ) -> ContinualResult:
     rng = np.random.default_rng(seed)
     tasks = stream.tasks()
@@ -102,7 +103,7 @@ def run_continual(
     # parsed to "abl", so a quantum circuit was trained at the classical learning rate
     # and the whole ablation table was invalid.
     kind = kind or arm.split("_")[0]
-    is_quantum = kind == "quantum"
+    is_quantum = kind in ("quantum", "hybrid_quantum")
     lr = cfg.train.lr_by_arm.get(
         kind, cfg.train.lr if is_quantum else cfg.train.lr_classical)
     opt = torch.optim.Adam(model.parameters(), lr=lr)
@@ -165,6 +166,9 @@ def run_continual(
         for j in range(t):
             if A[t, j] == 0 and j not in past:      # carry the last known value forward
                 A[t, j] = A[t - 1, j]
+
+        if on_task_end is not None:
+            on_task_end(t, model)
 
         if t % eval_every == 0:
             # Tr(F) costs one backward pass per probe example, so it is refreshed on a
