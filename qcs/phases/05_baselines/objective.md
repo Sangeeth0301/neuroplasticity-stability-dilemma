@@ -4,7 +4,7 @@
 Know exactly what must be beaten, with classical arms built with equal care.
 
 ## What runs here
-- `scripts/tune_lr.py`
+- `scripts/pipeline/tune_lr.py`
 - `src/qcs/classical/scorers.py`
 
 ## Exit criterion

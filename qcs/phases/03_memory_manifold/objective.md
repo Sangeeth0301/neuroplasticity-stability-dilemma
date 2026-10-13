@@ -4,7 +4,7 @@
 Storage that cannot destroy information — the whole stability argument rests here.
 
 ## What runs here
-- `scripts/build_memory.py`
+- `scripts/pipeline/build_memory.py`
 - `src/qcs/memory/ — schema.sql, store, ann_index, consolidate, graph, salience`
 
 ## Exit criterion

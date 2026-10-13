@@ -4,7 +4,7 @@
 Build a corpus where the answer to 'which memories were required?' is exact, not inferred.
 
 ## What runs here
-- `scripts/gen_dataset.py`
+- `scripts/pipeline/gen_dataset.py`
 - `src/qcs/datagen/ — fact bank, thread planner, surface realiser, validator`
 
 ## Exit criterion

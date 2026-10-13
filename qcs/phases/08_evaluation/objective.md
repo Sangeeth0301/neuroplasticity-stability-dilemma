@@ -4,7 +4,7 @@
 Results that survive an adversarial reader — including the ones that did not go our way.
 
 ## What runs here
-- `scripts/run_eval.py`
+- `scripts/pipeline/run_eval.py`
 - `src/qcs/eval/ — metrics, significance, failure analysis`
 
 ## Exit criterion

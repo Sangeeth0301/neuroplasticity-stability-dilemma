@@ -1,6 +1,6 @@
 """Phases 5-6 · baselines, the parameter-matched twin, and the continual run.
 
-    python scripts/train_continual.py --threads 12 --probes-per-task 4 --arms quantum linear
+    python scripts/pipeline/train_continual.py --threads 12 --probes-per-task 4 --arms quantum linear
 
 Emits V21-V34. This is the experiment; everything before it was preparation.
 """
@@ -20,6 +20,7 @@ from qcs.config import Config
 from qcs.eval.metrics import evaluate_probes
 from qcs.logging_ import RunLogger, read_jsonl
 from qcs.quantum.circuit import QRE
+from qcs.quantum.hybrid import HybridQRE
 from qcs.seeding import seed_everything
 from qcs.train.dataset import ScoringDataset
 from qcs.train.loop import TaskStream, run_continual
@@ -29,6 +30,8 @@ from qcs.viz import training_viz
 def make_model(name: str, cfg: Config, seed: int):
     if name == "quantum":
         return QRE(cfg, seed=seed)
+    if name == "hybrid_quantum":
+        return HybridQRE(cfg, seed=seed)
     return build_scorer(name, cfg, seed=seed)
 
 

@@ -4,7 +4,7 @@
 The experiment: a long task sequence with both properties instrumented at every step.
 
 ## What runs here
-- `scripts/train_continual.py`
+- `scripts/pipeline/train_continual.py`
 - `src/qcs/train/ — replay, anchor, loop`
 
 ## Exit criterion

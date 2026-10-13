@@ -1,7 +1,7 @@
 """Phase 8 · the full evaluation: seeds, ablations, noise, the sealed test split,
 significance and failure analysis.
 
-    python scripts/run_eval.py --seeds 7 17 27 --tasks 120
+    python scripts/pipeline/run_eval.py --seeds 7 17 27 --tasks 120
 
 Emits V35-V40 and V46. Every claim made in the blueprint should end up with a figure
 here — including the ones that did not go our way.
@@ -24,6 +24,7 @@ from qcs.eval.metrics import evaluate_probes, mrr
 from qcs.eval.significance import paired_bootstrap, per_thread_metric
 from qcs.logging_ import RunLogger
 from qcs.quantum.circuit import QRE
+from qcs.quantum.hybrid import HybridQRE
 from qcs.quantum.noise import noisy_score
 from qcs.seeding import seed_everything
 from qcs.train.dataset import ScoringDataset
@@ -44,7 +45,11 @@ def mask_features(X: np.ndarray, blocks: list[slice]) -> np.ndarray:
 
 
 def make_model(name: str, cfg: Config, seed: int):
-    return QRE(cfg, seed=seed) if name == "quantum" else build_scorer(name, cfg, seed=seed)
+    if name == "quantum":
+        return QRE(cfg, seed=seed)
+    if name == "hybrid_quantum":
+        return HybridQRE(cfg, seed=seed)
+    return build_scorer(name, cfg, seed=seed)
 
 
 def train_arm(name: str, cfg: Config, stream: TaskStream, log: RunLogger, seed: int,

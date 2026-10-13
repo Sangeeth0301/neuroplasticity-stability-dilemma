@@ -7,7 +7,7 @@ plus two insets that answer "where does the entanglement actually come from" and
 
     figs/CIRCUIT_vqc_canonical.png
 
-Run:  python scripts/make_vqc_canonical.py
+Run:  python scripts/figures/make_vqc_canonical.py
 """
 
 from __future__ import annotations

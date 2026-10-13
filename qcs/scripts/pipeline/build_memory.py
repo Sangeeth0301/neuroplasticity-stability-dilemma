@@ -1,6 +1,6 @@
 """Phase 3 · build the memory manifold ℳ and emit V09-V12.
 
-    python scripts/build_memory.py [--threads 8]
+    python scripts/pipeline/build_memory.py [--threads 8]
 
 Builds: append-only SQLite store · FAISS prefilter · consolidation summaries ·
 entity/supersession DAG · per-user salience. Then measures the one number that caps the

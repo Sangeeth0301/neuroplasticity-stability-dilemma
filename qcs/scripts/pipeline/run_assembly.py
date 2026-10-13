@@ -1,6 +1,6 @@
 """Phase 7 · budgeted context assembly, the frozen reader, and the saturation sweep.
 
-    python scripts/run_assembly.py --checkpoints runs/<phase6 run>/checkpoints
+    python scripts/pipeline/run_assembly.py --checkpoints runs/<phase6 run>/checkpoints
 
 Emits V41-V45. This is where the third architectural claim — that context saturation is
 bounded by construction — is either demonstrated or refuted.

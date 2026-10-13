@@ -8,7 +8,7 @@ version-controlled rather than being opaque bitmaps:
     figs/DIAG_C_circuit.png        the 10-qubit variational circuit in detail
     figs/DIAG_D_stack.png          the technology stack, layer by layer
 
-Run:  python scripts/make_diagrams.py
+Run:  python scripts/figures/make_diagrams.py
 """
 
 from __future__ import annotations

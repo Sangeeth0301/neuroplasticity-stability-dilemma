@@ -4,8 +4,8 @@
 A deterministic, frozen map from text to a unit-norm 1024-dimensional vector.
 
 ## What runs here
-- `scripts/fit_encoder.py`
-- `scripts/study_whitening.py`
+- `scripts/pipeline/fit_encoder.py`
+- `scripts/pipeline/study_whitening.py`
 - `src/qcs/encode/`
 
 ## Exit criterion

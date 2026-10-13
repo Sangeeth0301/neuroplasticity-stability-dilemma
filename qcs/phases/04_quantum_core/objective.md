@@ -4,7 +4,7 @@
 A correct, differentiable circuit whose depth is chosen from evidence.
 
 ## What runs here
-- `scripts/study_trainability.py`
+- `scripts/pipeline/study_trainability.py`
 - `src/qcs/quantum/`
 
 ## Exit criterion

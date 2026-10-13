@@ -10,7 +10,7 @@ trained checkpoints — nothing here is schematic.
     RES5_plasticity.png  the plasticity evidence, four panels
     RES6_scorecard.png   every claim, its status, and the number behind it
 
-Run:  python scripts/make_result_figures.py
+Run:  python scripts/figures/make_result_figures.py
 """
 
 from __future__ import annotations

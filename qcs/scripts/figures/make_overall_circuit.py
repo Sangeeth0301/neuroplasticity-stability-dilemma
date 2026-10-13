@@ -7,7 +7,7 @@ and the loss returns along a dashed rail to the only parameters that learn.
 
     figs/CIRCUIT_overall.png
 
-Run:  python scripts/make_overall_circuit.py
+Run:  python scripts/figures/make_overall_circuit.py
 """
 
 from __future__ import annotations

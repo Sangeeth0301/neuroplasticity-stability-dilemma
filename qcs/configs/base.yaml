@@ -52,7 +52,7 @@ train:
   batch_size: 32
   lr: 0.03
   lr_classical: 0.001
-  lr_by_arm: {}              # filled by scripts/tune_lr.py — each arm at ITS best lr
+  lr_by_arm: {}              # filled by scripts/pipeline/tune_lr.py — each arm at ITS best lr
   replay_capacity: 8000
   replay_ratio: 0.5
   lambda_omega: 0.01

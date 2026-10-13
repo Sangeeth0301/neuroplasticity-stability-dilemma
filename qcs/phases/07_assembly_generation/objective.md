@@ -4,7 +4,7 @@
 Turn scores into the best prompt under a hard token ceiling.
 
 ## What runs here
-- `scripts/run_assembly.py`
+- `scripts/pipeline/run_assembly.py`
 - `src/qcs/assemble/`
 
 ## Exit criterion

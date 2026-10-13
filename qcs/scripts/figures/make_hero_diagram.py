@@ -8,7 +8,7 @@ Design rules, deliberately strict:
     slate = frozen, green = evaluation
   · anything that needs a sentence belongs in the report, not in the figure
 
-Run:  python scripts/make_hero_diagram.py
+Run:  python scripts/figures/make_hero_diagram.py
 """
 
 from __future__ import annotations

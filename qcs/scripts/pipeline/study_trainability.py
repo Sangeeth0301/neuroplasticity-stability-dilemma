@@ -1,6 +1,6 @@
 """Phase 4 · verify the quantum core on REAL data and choose the depth by evidence.
 
-    python scripts/study_trainability.py [--threads 4] [--samples 30]
+    python scripts/pipeline/study_trainability.py [--threads 4] [--samples 30]
 
 Emits V14-V20. Nothing in Phase 5+ is allowed to start until the gradient-agreement
 check (V19, product form) passes and the depth is chosen from V17.

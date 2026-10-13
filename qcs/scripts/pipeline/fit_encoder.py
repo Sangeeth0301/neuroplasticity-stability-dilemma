@@ -1,6 +1,6 @@
 """Phase 2 · fit the frozen encoding stack and emit V05-V08, V13.
 
-    python scripts/fit_encoder.py [--epochs 30] [--tag phase2]
+    python scripts/pipeline/fit_encoder.py [--epochs 30] [--tag phase2]
 
 Steps
   1. segment the training corpus into semantic units

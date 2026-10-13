@@ -1,6 +1,6 @@
 """Phase 1 · generate the corpus, validate it, and emit V01-V04.
 
-    python scripts/gen_dataset.py [--config quantum_qre] [--tag phase1]
+    python scripts/pipeline/gen_dataset.py [--config quantum_qre] [--tag phase1]
 """
 
 from __future__ import annotations

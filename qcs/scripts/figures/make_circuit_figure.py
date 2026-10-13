@@ -7,7 +7,7 @@
 The third figure exists for a reason: it is drawn by an independent library directly
 from the model object, so the schematic cannot quietly drift away from the code.
 
-Run:  python scripts/make_circuit_figure.py
+Run:  python scripts/figures/make_circuit_figure.py
 """
 
 from __future__ import annotations
