@@ -3,3 +3,5 @@ train:
     quantum: 0.02
     linear: 0.1
     mlp: 0.02
+    hybrid_quantum: 0.02
+    hybrid_linear: 0.1

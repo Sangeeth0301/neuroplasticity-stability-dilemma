@@ -71,6 +71,28 @@ class LinearScorer(BaseScorer):
         return torch.sigmoid(self.fc(self._t(x)).squeeze(-1))
 
 
+class HybridLinearScorer(BaseScorer):
+    """Classical control for the hybrid QRE: the SAME similarity prior and gain, with a
+    1024-weight linear residual in place of the circuit. Isolates the circuit's
+    contribution from the contribution of the prior."""
+
+    name = "hybrid_linear"
+
+    def __init__(self, in_dim: int = 1024, seed: int = 0, prior_gain: float = 6.0):
+        super().__init__()
+        torch.manual_seed(seed)
+        self.fc = nn.Linear(in_dim, 1)
+        nn.init.normal_(self.fc.weight, 0.0, 0.02)
+        nn.init.zeros_(self.fc.bias)
+        self.theta = self.fc.weight
+        self.gain = nn.Parameter(torch.tensor(float(prior_gain)))
+        self.block = slice(in_dim // 2, 3 * in_dim // 4)
+
+    def forward(self, x) -> torch.Tensor:
+        x = self._t(x)
+        return torch.sigmoid(self.gain * x[:, self.block].sum(dim=1) + self.fc(x).squeeze(-1))
+
+
 class MLPScorer(BaseScorer):
     """Capacity reference: 1024 → h → 1 with ReLU. Reported separately, never as 'the'
     classical arm."""
@@ -154,6 +176,7 @@ class OracleScorer(BaseScorer):
 SCORERS = {
     "linear": LinearScorer,
     "mlp": MLPScorer,
+    "hybrid_linear": HybridLinearScorer,
     "cosine": CosineScorer,
     "recency": RecencyScorer,
     "random": RandomScorer,
@@ -164,7 +187,7 @@ SCORERS = {
 def build_scorer(name: str, cfg, seed: int = 0) -> BaseScorer:
     """`quantum` is handled by the caller (it needs the full Config); everything else
     comes from here."""
-    if name in ("linear", "mlp"):
+    if name in ("linear", "mlp", "hybrid_linear"):
         return SCORERS[name](cfg.encode.feature_dim, seed=seed)
     if name in ("cosine", "recency"):
         return SCORERS[name](cfg.encode.feature_dim)

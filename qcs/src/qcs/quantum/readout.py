@@ -1,9 +1,10 @@
 """S9 · measurement — where the quantum state collapses to one classical number.
 
-`local_z`  ⟨Z_q⟩ on a single qubit. THE DEFAULT, and not for style: the pre-build study
-           measured the global alternative's gradient variance falling from 5e−17 at
-           depth 1 to 2e−32 at depth 16 — a barren plateau, numerically zero in float32.
-`global_z` ⟨Z⊗Z⊗…⊗Z⟩. Kept only so the failure is reproducible as an ablation.
+`local_z`  ⟨Z_q⟩ on a single qubit. THE DEFAULT. It is justified by the light-cone argument and by standard
+           barren-plateau theory for deep global-observable circuits. (An early demo reported a measured
+           plateau for the global observable; that was a bug, because it had computed a product of
+           marginals. Corrected in Phase 4: at N=10, depth up to 16, the global observable shows no plateau.)
+`global_z` ⟨Z⊗Z⊗…⊗Z⟩. Kept for the ablation in scripts/pipeline/run_eval.py.
 `basis`    the full 2^N distribution, for the dense-feature readout variant.
 """
 
