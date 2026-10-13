@@ -1,67 +1,49 @@
 # Dual-Manifold ContextSync
 
-> **🚀 Latest Update: Complete V2 Architecture Release**
-> The repository has been entirely rewritten into a modular, 10-phase pipeline. The legacy V1 code has been securely archived, and the new robust structure features a strict SQLite Memory Manifold coupled with a 10-qubit Quantum Relevance Engine.
+**Keeping stability and plasticity together in long, multi-user chat threads, with a classical memory and a 10-qubit circuit.**
 
-**A quantum–classical hybrid architecture for the stability–plasticity dilemma in long,
-multi-user LLM chat threads.**
+Course project, *Quantum Computing and Algorithm* (Team_14).
 
-Stability and plasticity are normally carried by the same parameter vector, so they compete
-for the same coordinates. This project puts them on two different mathematical objects — an
-**append-only classical memory** that no gradient can erase, and a **10-qubit variational
-circuit** whose parameters live on a compact manifold where learning capacity provably
-cannot decay. The language model is frozen throughout; no gradient path to it exists.
+A model that follows a long group chat must remember facts stated hundreds of messages ago, and also accept them when someone changes
+them. In an ordinary network both needs live in the same weights, so they compete. Here they are kept apart:
 
-> Everything lives in [`qcs/`](qcs/). Start with **[`qcs/README.md`](qcs/README.md)**.
+- an **append-only memory** holds what must never be lost (nothing in it is trained, so training cannot erase it);
+- a **10-qubit variational circuit**, simulated exactly, learns which stored message is relevant to a new question.
+
+The language model is frozen. Everything lives in [`qcs/`](qcs/); start with **[`qcs/README.md`](qcs/README.md)**.
 
 ---
 
-## Result in one table
+## Result
 
-Three seeds · 120 sequential tasks · every arm at its own tuned learning rate.
+Three seeds, 120 tasks, sealed test split.
 
-| Arm | \|θ\| | rank-1 | MRR | stale-above ↓ | Tr(F) after 120 tasks |
-|---|---|---|---|---|---|
-| quantum (QRE) | 1,080 | 0.928 ± 0.038 | 0.959 ± 0.022 | 0.015 | **4.75× — capacity grew** |
-| **linear** (parameter-matched) | 1,025 | **0.979 ± 0.002** | **0.990 ± 0.001** | 0.000 | 0.28× — capacity lost |
-| mlp (capacity reference) | 65,665 | 0.996 ± 0.002 | 0.998 ± 0.001 | 0.000 | 0.06× — capacity collapsed |
-| cosine (no learning) | 0 | 0.894 | 0.943 | 0.078 | — |
+| Model | Test MRR | Stability | Plasticity | Combined |
+|---|---|---|---|---|
+| **Quantum, 10-qubit readout (final)** | 0.974 | 0.967 | 0.835 | **0.896** |
+| Quantum, 1-qubit readout (original) | 0.861 | 0.873 | 0.846 | 0.859 |
+| Linear (same size) | 0.974 | 0.982 | 0.194 | 0.323 |
+| MLP (65k parameters) | 0.995 | 0.998 | 0.225 | 0.316 |
 
-Reported plainly, both ways:
-
-- **The quantum arm loses on ranking quality.** Δ −0.056 MRR against its parameter-matched
-  classical twin, 95% CI [−0.070, −0.043], p = 0.000 by paired bootstrap over threads, at
-  roughly 135× the compute. The architecture was built so this comparison could falsify,
-  and it did.
-- **On effective learning capacity — the property the reference paper is about — the
-  predicted signature appears.** Tr(F) rises for the compact-manifold arm and collapses for
-  both Euclidean arms. That is an early indicator, not a proof: 120 tasks is two orders of
-  magnitude short of the horizon at which the published effect emerges.
-
-Supported architecture claims: zero retrieval failures and zero evictions on the sealed
-test split, stale-fact errors from 0.130 down to 0.000–0.035, no unlabelled stale fact ever
-reaching a prompt, and ranking unchanged under depolarising noise to p = 1e-3.
+Reading out all ten qubits instead of one closes the ranking gap to the linear model (a tie, not a win), every model remembers old facts
+through the memory, and the circuit keeps more of its ability to learn a changed rule, although classical models recover part of that
+gap when their learning rate is tuned. The study covers 120 tasks, a simulated circuit and 6 test threads. Details and limits:
+[`qcs/results/RESULTS_FINAL.md`](qcs/results/RESULTS_FINAL.md).
 
 ---
 
-## Repository map
+## Where things are
 
-```
-qcs/
-├── README.md            full front door: layout, results, reproduction commands
-├── MASTER_DOC.md        the build record — every phase, what it measured, what changed
-├── deliverables/        report (docx) · phases document (docx) · deck (pptx) · 2 HTML documents
-├── figures/             architecture · circuit · results · per-phase evidence
-├── phases/              00–09, each with objective, exit criterion and measured result
-├── src/qcs/             the system itself — 9 sub-packages
-├── scripts/             16 CLI entry points + build_docs/ document generators
-├── tests/               88 tests
-├── configs/             base.yaml + tuned.yaml — every tunable number in the project
-├── data/raw/            the generated corpus (deterministic from a seed)
-└── runs/                one canonical run per phase: config, environment, metrics, figures
-```
+| Path | What it is |
+|---|---|
+| [`qcs/deliverables/`](qcs/deliverables/) | The project report (Word and PDF) and the presentation |
+| [`qcs/src/qcs/`](qcs/src/qcs/README.md) | The code: one package per stage, each with a README that explains its logic file by file |
+| [`qcs/scripts/`](qcs/scripts/README.md) | Command-line entry points: `pipeline/`, `experiments/`, `figures/`, `report/` |
+| [`qcs/results/`](qcs/results/README.md) | The final experiment outputs |
+| [`qcs/tests/`](qcs/tests/README.md) | 88 automated tests |
+| [`qcs/MASTER_DOC.md`](qcs/MASTER_DOC.md) | The build record, phase by phase |
 
-## Quick start
+## Run it
 
 ```bash
 cd qcs
@@ -70,20 +52,13 @@ python -m pip install -e .
 python -m pytest
 ```
 
-Full reproduction pipeline, phase by phase: see [`qcs/README.md`](qcs/README.md).
-
----
+The full rebuild and the final experiments are described in [`qcs/README.md`](qcs/README.md) and [`qcs/scripts/README.md`](qcs/scripts/README.md).
 
 ## Not in this repository
 
-Three things are deliberately excluded by `.gitignore` and stay on the author's machine:
-
-- `qcs/references/` — third-party papers, not ours to redistribute.
-- `qcs/data/interim/`, `qcs/data/processed/` — caches and frozen artefacts, regenerated by
-  `fit_encoder.py` and `train_continual.py --rebuild`.
-- `qcs/archive/` — superseded V1 material, kept locally for provenance.
+`.gitignore` excludes the cached feature files (`qcs/data/processed/scoring_*.npz`, rebuilt by
+`scripts/pipeline/build_scoring_cache.py`), the sentence-embedding cache, the third-party reference papers and local archives.
 
 ## Reference
 
-Yu-Qin Chen and Shi-Xin Zhang, *Intrinsic Preservation of Plasticity in Continual Quantum
-Learning*, PRX Quantum **7**, 033003 (2026).
+Yu-Qin Chen and Shi-Xin Zhang, *Intrinsic Preservation of Plasticity in Continual Quantum Learning*, PRX Quantum **7**, 033003 (2026).

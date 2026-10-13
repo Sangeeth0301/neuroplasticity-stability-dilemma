@@ -1,163 +1,116 @@
 # Dual-Manifold ContextSync
 
-**A quantum–classical hybrid architecture for the stability–plasticity dilemma in long,
-multi-user LLM chat threads.**
+**A classical memory plus a 10-qubit circuit, for the stability-plasticity problem in long, multi-user chat threads.**
 
-Stability and plasticity are normally carried by the same parameter vector, so they
-compete for the same coordinates. This project puts them on two different mathematical
-objects: an **append-only classical memory** that nothing can gradient-erase, and a
-**10-qubit variational circuit** whose parameters live on a compact manifold where
-learning capacity provably cannot decay. The language model is frozen throughout.
+A model that follows a long group chat has to remember facts stated hundreds of messages ago, and also accept those facts when someone
+changes them. In an ordinary network both needs live in the same weights, so they compete. This project keeps them apart:
 
-Reference paper: Chen & Zhang, *Intrinsic Preservation of Plasticity in Continual Quantum
-Learning*, PRX Quantum **7**, 033003 (2026) — `references/paper 4.pdf`.
+- **Stability** comes from an **append-only memory** (SQLite, with triggers that reject edits and deletes). Nothing in it is trained, so training cannot erase it.
+- **Plasticity** comes from a **10-qubit variational circuit** (simulated exactly) that learns which stored message is relevant to a new question. Its angles wrap around a circle and its gates are unitary, so its parameters cannot grow without limit.
+- The language model is frozen. The two sides meet at one point: a feature vector goes in and one relevance score comes out.
 
----
-
-## Start here
-
-| If you want… | Open |
-|---|---|
-| The full technical report | `deliverables/Dual_Manifold_ContextSync_Report.docx` |
-| The presentation | `deliverables/Dual_Manifold_ContextSync_Deck.pptx` |
-| How the 10 phases build the dataset and satisfy both properties | `deliverables/Ten_Phases_Dataset_Stability_Plasticity.docx` |
-| The architecture argument, in the browser | `deliverables/Architecture_Blueprint.html` |
-| The repository and figure catalogue | `deliverables/Build_Atlas.html` |
-| The running build record, phase by phase | `MASTER_DOC.md` |
+Reference paper: Chen and Zhang, *Intrinsic Preservation of Plasticity in Continual Quantum Learning*, PRX Quantum 7, 033003 (2026).
 
 ---
 
-## Headline result, stated honestly
+## Final results
 
-Three seeds, 120 sequential tasks, every arm at its own tuned learning rate.
+Three seeds, 120 sequential tasks, each model at its own tuned learning rate. Test = the sealed test split (6 threads, 360 probes). Full detail: [`results/RESULTS_FINAL.md`](results/RESULTS_FINAL.md).
 
-| Arm | \|θ\| | rank-1 | MRR | stale-above ↓ | Tr(F) after 120 tasks |
+| Model | Parameters | Test MRR | Stability | Plasticity | Combined |
 |---|---|---|---|---|---|
-| quantum (QRE) | 1,080 | 0.928 ± 0.038 | 0.959 ± 0.022 | 0.015 | **4.75× — capacity grew** |
-| **linear** (parameter-matched) | 1,025 | **0.979 ± 0.002** | **0.990 ± 0.001** | 0.000 | 0.28× — capacity lost |
-| mlp (capacity reference) | 65,665 | 0.996 ± 0.002 | 0.998 ± 0.001 | 0.000 | 0.06× — capacity collapsed |
-| cosine (no learning) | 0 | 0.894 | 0.943 | 0.078 | — |
+| **Quantum, 10-qubit readout (final)** | 1,080 + 12 | 0.974 ± 0.005 | 0.967 | 0.835 | **0.896** |
+| Quantum, 1-qubit readout (original) | 1,080 + 2 | 0.861 ± 0.028 | 0.873 | 0.846 | 0.859 |
+| Linear | 1,025 | 0.974 ± 0.001 | 0.982 | 0.194 | 0.323 |
+| MLP | 65,665 | 0.995 ± 0.001 | 0.998 | 0.225 | 0.316 |
 
-Two things follow, and the project reports both:
+*Stability* = score on the first 30 tasks after all 120 are learned. *Plasticity* = score after 40 steps on a reversed rule (the outdated fact becomes the correct answer). *Combined* = harmonic mean.
 
-- **The quantum arm loses on ranking quality**, significantly: Δ −0.056 MRR against its
-  parameter-matched classical twin, 95% CI [−0.070, −0.043], p = 0.000 by paired bootstrap
-  over threads — at roughly 135× the compute. The design required this comparison to be
-  falsifiable, and it falsified in the classical arm's favour at this scale.
-- **On the metric the reference paper is actually about, the predicted signature appears.**
-  Effective learning capacity rises for the quantum arm and collapses for both classical
-  arms. That is an early indicator, not a proof: 120 tasks is two orders of magnitude short
-  of the horizon at which the published effect emerges.
+What the evidence supports, stated plainly:
 
-Architecture claims that *are* supported: zero retrieval failures and zero evictions on the
-sealed test split, stale-fact errors down from 0.130 to 0.000–0.035, no unlabelled stale
-fact ever reaching a prompt, and ranking unchanged under depolarising noise up to p = 1e-3.
+- Reading out **all ten qubits** instead of one raised test MRR from 0.861 to 0.974 (+0.114, significant). It **ties** the linear model (difference 0.001, interval −0.007 to +0.009); the larger MLP is more accurate.
+- Every model **remembers the past**: facts older than 400 turns are still found (0.97 for the circuit), while a model that sees only the last 100 turns scores 0 beyond 200 turns. This comes from the memory.
+- After 120 tasks the circuit **keeps its ability to learn a changed rule** better than linear and MLP at their normal learning rates. When every model gets its best learning rate, the classical models recover part of the gap (linear 0.72, MLP 0.71, circuit 0.97 after 80 steps), so the honest claim is *faster and steadier adaptation*, not that classical models cannot learn.
+- Not shown: anything beyond 120 tasks, real quantum hardware, or a real language model (a stand-in reader is used). The test split has only 6 threads.
 
 ---
 
-## Layout
+## Repository layout
 
 ```
 qcs/
-├── README.md                 you are here
-├── MASTER_DOC.md             the build record: every phase, what it measured, what changed
-│
-├── deliverables/             report · phases document · deck · two HTML documents
-├── figures/
-│   ├── architecture/         the system diagrams
-│   ├── circuit/              the variational circuit, the gate, the PennyLane cross-check
-│   ├── results/              RES1–RES6, the six result figures
-│   └── phases/               V01–V46, the per-phase evidence figures
-├── phases/                   00–09, one folder per phase with its objective and evidence
-├── references/               the reference papers
-│
-├── src/qcs/                  the package — the actual system
-│   ├── datagen/              corpus generation (the plan IS the ground truth)
-│   ├── ingest/  encode/      segmentation and the frozen encoding stack
-│   ├── memory/               the append-only store, graph, salience, retrieval
-│   ├── quantum/              gates · encoding · ansatz · readout · circuit · fisher · noise
-│   ├── classical/            the parameter-matched twin and the baselines
-│   ├── train/                dataset · replay · anchor · the continual loop
-│   ├── assemble/             budget · knapsack · prompt assembly
-│   ├── eval/                 metrics · headroom · significance · failure analysis
-│   └── viz/                  one style module, one figure module per phase
-├── scripts/                  thin CLIs — argument parsing only
-│   └── build_docs/           the report, phases document and deck generators
-├── tests/                    88 tests
-├── configs/                  base.yaml + tuned.yaml — every tunable number
-├── data/raw/                 the generated corpus (immutable)
-├── data/processed/           frozen artefacts: whitening, projection, the memory database
-├── runs/                     one canonical run per phase: config, env, metrics, figures
-└── archive/                  superseded V1 material, kept for provenance only
+├── README.md              you are here
+├── MASTER_DOC.md          the build record: every phase, what it measured, what changed
+├── configs/               base.yaml + tuned.yaml: every tunable number
+├── data/                  the generated corpus (raw/) and frozen artefacts (processed/)
+├── src/qcs/               the system: datagen, ingest, encode, memory, quantum, classical, train, assemble, eval, viz
+├── scripts/               command-line entry points
+│   ├── pipeline/            the build, phase by phase
+│   ├── experiments/         the final experiments (3 seeds x 4 models)
+│   ├── figures/             every figure script
+│   └── report/              builds results, presentation and report
+├── tests/                 88 automated tests
+├── phases/                one folder per build phase: objective, exit criterion, result
+├── runs/                  the record of the build phases (config, environment, metrics, figures)
+├── results/               the final experiment outputs and RESULTS_FINAL.md
+├── figures/               final/ (report figures), analysis/, branding/, and the version 1 figures
+└── deliverables/          the Team_14 report and presentation (+ archive_v1/)
 ```
+
+**Every code folder has its own README that explains the important logic file by file.** Start with
+[`src/qcs/README.md`](src/qcs/README.md).
 
 ---
 
-## Reproducing the results
+## Quick start
+
+Python 3.11 or newer (verified on 3.14, Windows 11, CPU only).
 
 ```bash
+cd qcs
 python -m pip install -r requirements.txt
 python -m pip install -e .
+python -m pytest                                   # 88 tests
 
-python scripts/gen_dataset.py             # corpus + validation + V01–V04
-python scripts/fit_encoder.py             # frozen encoding stack + V05–V08, V13
-python scripts/study_whitening.py         # the shrinkage sweep behind whiten_eps
-python scripts/build_memory.py            # memory manifold + V09–V12, V10b
-python scripts/study_trainability.py      # quantum core + V14–V20
-python scripts/tune_lr.py                 # per-arm learning rates -> configs/tuned.yaml
-python scripts/train_continual.py --config tuned
-python scripts/run_assembly.py --checkpoints runs/<phase6-run>/checkpoints
-python scripts/run_eval.py --seeds 7 17 27
+# the cached feature files are not stored in git; rebuild them once
+python scripts/pipeline/build_scoring_cache.py
 
-python -m pytest                          # 88 tests
+# one final experiment: MODEL in quantum | multi | linear | mlp, SEED in 7 | 17 | 27
+python scripts/experiments/final_eval.py multi 7
+python scripts/experiments/evidence_eval.py multi 7
+python scripts/experiments/plasticity_fairness.py multi 7
+
+# rebuild summaries, figures and the written results
+python scripts/figures/make_final_figures.py
+python scripts/figures/make_evidence_figures.py
+python scripts/report/finalize_results.py
 ```
 
-Figures and documents:
+The full rebuild from an empty folder (dataset, encoder, memory, quantum core, learning rates, training) is listed in
+[`scripts/README.md`](scripts/README.md).
 
-```bash
-python scripts/make_hero_diagram.py       # figures/architecture
-python scripts/make_diagrams.py
-python scripts/make_overall_circuit.py
-python scripts/make_circuit_figure.py     # figures/circuit
-python scripts/make_vqc_canonical.py
-python scripts/make_result_figures.py     # figures/results
+## How one question is answered
 
-npm install                               # docx + pptxgenjs, for the document builders
-node scripts/build_docs/report_body.js    # -> deliverables/…Report.docx
-node scripts/build_docs/build_phases_doc.js
-node scripts/build_docs/build_deck.js     # -> deliverables/…Deck.pptx
-```
-
-Two caches were removed to keep the submission small; both regenerate automatically:
-`data/interim/` (sentence-embedding cache, rebuilt by `fit_encoder.py`) and
-`data/processed/scoring_train.npz` (feature tensors, rebuilt by
-`train_continual.py --rebuild`).
-
----
+1. The chat is cut into short **units** and each unit is stored word for word in the **memory**.
+2. For a new question, the memory returns the 64 best earlier candidates (never a later one).
+3. Each (question, candidate) pair becomes **1,024 numbers** of unit length: question, candidate, their product, and relational features (age, speaker, graph links, salience).
+4. The numbers become the amplitudes of a **10-qubit state** (2^10 = 1,024). Eight layers of two-qubit gates (72 gates, 1,080 angles) act on it.
+5. All ten qubits are measured; a weighted sum and a sigmoid give one **relevance score**.
+6. Candidates are chosen by value per token within a 3,072-token budget; outdated facts are dropped or labelled.
+7. During training only the angles and readout weights change, protected by replay, a Fisher anchor and a trust region.
 
 ## Environment
 
-Verified on Python 3.14, Windows 11, CPU only.
-
-| package | version | role |
+| Package | Version | Role |
 |---|---|---|
-| pennylane | 0.44.0 | independent cross-check of the circuit |
-| qiskit | 2.3.0 | hardware-parity path (phase 9) |
-| tensorcircuit-ng | 1.9.1 | cross-check against the reference paper's stack |
-| torch | 2.10.0+cpu | autodiff, the classical arms, the statevector simulator |
-| sentence-transformers | 5.2.3 | the frozen encoder |
-| faiss-cpu | 1.15.0 | candidate prefilter |
-| numpy / scipy / matplotlib | 2.4.0 / 1.17.0 / 3.10.8 | core |
-
-The quantum simulator used for training is the project's own batched statevector code in
-`src/qcs/quantum/` — differentiable end to end, and cross-checked against PennyLane at
-fidelity 1.000 so the implementation cannot silently drift.
-
----
+| torch | 2.10 (CPU) | autodiff, the classical models, the state-vector simulator |
+| pennylane | 0.44 | independent cross-check of the circuit |
+| sentence-transformers | 5.2 | the frozen encoder |
+| faiss-cpu | 1.15 | candidate retrieval |
+| numpy / scipy / matplotlib | 2.4 / 1.17 / 3.10 | core |
+| qiskit, tensorcircuit-ng | optional | cross-checks and the hardware-parity path (not started) |
 
 ## Status
 
-Phases 0–8 complete. Phase 9 (hardening) not started: the long-horizon run of 1,000–3,000
-tasks that would settle the plasticity question, hardware parity with finite shots, a
-scaling study across qubit counts, a real frozen LLM in place of the extractive reader,
-and a one-command reproduction kit.
+Build phases 0 to 8 are complete. Phase 9 (the 1,000+ task run, hardware parity with finite shots, a scaling study, a real frozen
+language model, a one-command reproduction kit) has not been started.

@@ -179,7 +179,7 @@ validator).
 **Commands**
 
 ```bash
-python scripts/gen_dataset.py
+python scripts/pipeline/gen_dataset.py
 python -m pytest -q
 ```
 
@@ -227,7 +227,7 @@ Block norm shares landed exactly on target — `p_q` 0.350, `p_c` 0.350, interac
 **Two findings that changed the design**
 
 1. **Whitening with a tiny epsilon destroys retrieval.** The first run showed whitened
-   recall@20 collapsing from 0.879 to 0.633. `scripts/study_whitening.py` (figure V06b)
+   recall@20 collapsing from 0.879 to 0.633. `scripts/pipeline/study_whitening.py` (figure V06b)
    swept rank × shrinkage and found the cause: with `eps = 1e-6`, low-variance noise
    directions get rescaled to the same magnitude as signal directions. At rank 128 the
    damage is worst (recall 0.338). Shrinkage fixes it without giving up rank —
@@ -246,8 +246,8 @@ component exists to prevent.
 **Commands**
 
 ```bash
-python scripts/fit_encoder.py --epochs 20
-python scripts/study_whitening.py
+python scripts/pipeline/fit_encoder.py --epochs 20
+python scripts/pipeline/study_whitening.py
 ```
 
 ---
@@ -321,7 +321,7 @@ defaulting to *unknown* (zeros) rather than to a false positive claim.
 **Commands**
 
 ```bash
-python scripts/build_memory.py --threads 12
+python scripts/pipeline/build_memory.py --threads 12
 ```
 
 ---
@@ -400,7 +400,7 @@ that gradients vanish below the light cone while remaining alive above it.
 **Commands**
 
 ```bash
-python scripts/study_trainability.py --threads 4 --probes 30 --samples 25
+python scripts/pipeline/study_trainability.py --threads 4 --probes 30 --samples 25
 python -m pytest tests/test_quantum.py -q
 ```
 
@@ -428,7 +428,7 @@ quantum results unconvincing.
 
 **Finding — the first comparison was unfair, and measuring it proved it.** The reference
 paper's experiment 1 uses lr 0.03 for the QNN and 1e-3 for the MLP. Running that way, the
-linear arm scored MRR **0.063**. `scripts/tune_lr.py` trains each arm on a task prefix and
+linear arm scored MRR **0.063**. `scripts/pipeline/tune_lr.py` trains each arm on a task prefix and
 scores it on held-out later tasks:
 
 | arm | 0.001 | 0.005 | 0.02 | 0.05 | 0.1 | best |
@@ -528,7 +528,7 @@ that did not go our way.
 **What was built:** `quantum/noise.py` (depolarising noise by trajectory sampling) ·
 `eval/significance.py` (paired bootstrap over **threads**, not probes) ·
 `eval/failure_analysis.py` (retrieval / ranking / stale / eviction taxonomy) ·
-`viz/eval_viz.py` (V35–V40, V46) · `scripts/run_eval.py`. Total runtime 40.6 min.
+`viz/eval_viz.py` (V35–V40, V46) · `scripts/pipeline/run_eval.py`. Total runtime 40.6 min.
 
 ### Headline — 3 seeds (7, 17, 27), 120 tasks, each arm at its tuned learning rate
 
@@ -651,3 +651,24 @@ disproportionately stale-fact errors (14 of 61), which the learned arms almost e
 | Light-cone floor L ≥ 6 for N=10 | enforced in `Config.validate()` |
 | ~~Global observable is a barren plateau~~ | **corrected in Phase 4**: the earlier measurement used a product of marginals. No plateau at N=10, L≤16. Local readout kept for the light-cone reason. |
 | Template-generated prose overstates probe cleanliness | accepted for now; `threads_human.jsonl` external-validity set planned for Phase 8 |
+
+---
+
+## Addendum: final experiments (after Phase 8, October 2026)
+
+Phase 8 left one open problem: the single-qubit circuit ranked significantly below the linear model. The follow-up work is recorded
+here so the build record stays complete. Everything above this line is unchanged and describes the original circuit.
+
+- **Diagnosis.** One readout qubit gives a quadratic function of the 1,024 inputs; the similarity signal in the features is linear. The
+  circuit could not express it well.
+- **Change.** `MultiReadoutQRE` (`src/qcs/quantum/hybrid.py`) reads all 10 qubits with 10 learned weights (`z = Σ w_q ⟨Z_q⟩`, `r = σ(βz + b)`),
+  initialised so step 0 equals the original model. Same circuit, same 1,080 angles, plus 12 parameters.
+- **Search.** `results/exploration/README.md` lists what was tried, including a failed similarity-prior idea (`HybridQRE`) and settings that did not help.
+- **Result** (3 seeds, sealed test split): test MRR 0.861 → 0.974, a tie with the linear model (0.974); the MLP is higher (0.995).
+  Stability and plasticity are measured directly (old-task retention; a reversed-rule test) in `results/RESULTS_FINAL.md`.
+- **Fairness check.** At each model's best learning rate the classical models recover part of the plasticity gap, so the supported claim is
+  faster and steadier adaptation, not that classical models cannot learn.
+- **Still open.** Phase 9: the 1,000+ task horizon, hardware parity, a real language model.
+- **Repository layout.** After these experiments the folder was reorganised: `scripts/` is split into `pipeline/`, `experiments/`,
+  `figures/` and `report/`; final outputs live in `results/`; the version 1 documents are in `deliverables/archive_v1/`. The commands
+  earlier in this file use the new script paths.
