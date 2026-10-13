@@ -22,3 +22,9 @@ qcs/archive/
 Thumbs.db
 .vscode/
 .idea/
+
+# ---- throw-away logs written by the experiment scripts ------------------
+qcs/runs/scratch/
+
+# ---- Office lock files ---------------------------------------------------
+~$*
